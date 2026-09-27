@@ -146,6 +146,17 @@ def test_strict_loading_refuses_the_wrong_mould():
     blob = room.serialize(room.MLP([64, 32, 10]))
     with pytest.raises(RuntimeError):
         room.deserialize_into(room.MLP([64, 8, 10]), blob)
+    # A shape mismatch raises even under strict=False. Only strict=True refuses a blob whose KEYS
+    # do not match: a plain Linear has weight/bias, the blob has layers.0.weight and friends.
+    stranger = nn.Linear(64, 10)
+    try:
+        room.deserialize_into(stranger, blob)
+    except RuntimeError:
+        return
+    pytest.fail(
+        "A blob whose keys (layers.0.weight, ...) match nothing in an nn.Linear (weight, bias) loaded without a word. "
+        "That is strict=False: nothing was loaded and nothing was said. Keep load_state_dict's strict default."
+    )
 
 
 # ------------------------------------------------------------------ freeze

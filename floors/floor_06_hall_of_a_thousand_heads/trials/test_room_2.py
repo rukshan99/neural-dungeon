@@ -45,6 +45,11 @@ def _honest(q, k, v):
     return F.scaled_dot_product_attention(q, k, v, is_causal=True)
 
 
+def _leaky_values(q, k, v):
+    """Honest veil over q and k, but each value was mixed with the NEXT position's value first."""
+    return F.scaled_dot_product_attention(q, k, v + torch.roll(v, shifts=-1, dims=1), is_causal=True)
+
+
 # ------------------------------------------------------------------- the veil
 def test_the_veil_is_lower_triangular_and_boolean():
     veil = room.causal_mask(5)
@@ -122,6 +127,13 @@ def test_the_detector_catches_a_veil_hung_one_seat_too_far():
     assert room.leaks_future(_off_by_one, B=2, T=8, d=8, seed=1) is True, (
         "tril(..., diagonal=1) lets position t hear t+1. Perturbing positions > t must change out[:, t]; "
         "your detector did not notice."
+    )
+
+
+def test_the_detector_catches_a_leak_through_the_values_alone():
+    assert room.leaks_future(_leaky_values, B=2, T=8, d=8, seed=1) is True, (
+        "This veil is honest about q and k, but every value was mixed with the next position's value before attention "
+        "(a non-causal smoothing of v). Perturbing only the keys can never show it: rewrite q, k AND v of the future."
     )
 
 

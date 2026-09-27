@@ -260,6 +260,27 @@ def test_the_inference_copy_weighs_half_and_answers_nearly_the_same():
     assert err < 2e-2, f"The bfloat16 copy differs from the float32 model by {err:.3%} (relative); expected about 1% or less."
 
 
+def test_the_inference_copy_casts_its_buffers_too_but_leaves_integers_alone():
+    torch.manual_seed(3)
+    bn = nn.BatchNorm1d(4)
+    bn(torch.randn(8, 4))  # one training step: running_mean/var move, num_batches_tracked becomes 1
+    half = room.cast_for_inference(bn, torch.bfloat16)
+    state = half.state_dict()
+    for name in ("running_mean", "running_var"):
+        assert state[name].dtype == torch.bfloat16, (
+            f"{name} of the copy is {state[name].dtype}. Buffers are model state too: module.to(dtype) casts every "
+            "floating-point buffer along with the parameters. Casting only parameters() leaves the running statistics behind."
+        )
+    assert state["num_batches_tracked"].dtype == torch.int64, (
+        f"num_batches_tracked became {state['num_batches_tracked'].dtype}. module.to(dtype) leaves integer buffers alone; "
+        "a counter has no business being bfloat16."
+    )
+    assert bn.running_mean.dtype == torch.float32 and bn.training, "The original BatchNorm must stay float32 and in train mode."
+    assert torch.allclose(half.running_mean.float(), bn.running_mean, atol=1e-2), (
+        "The copy's running_mean should be the original's values, rounded to bfloat16, not a fresh zero buffer."
+    )
+
+
 def test_parameter_bytes_counts_element_sizes_not_assumptions():
     mixed = nn.Sequential(nn.Linear(3, 2), nn.Linear(2, 1).to(torch.bfloat16))
     got = room.parameter_bytes(mixed)

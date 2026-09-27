@@ -199,7 +199,7 @@ Every number in the table is `torch.finfo(dtype)`: `.bits`, `.max`, `.eps`, `.ti
 
 - *Low precision:* the matmul family (`mm`, `addmm`, `bmm`, `matmul`, `linear`, `einsum`, the convolutions, `scaled_dot_product_attention`, the RNN cells). Inputs are cast to the autocast dtype on the way in; outputs come out in it. This is where the time goes, so this is where the speed comes from.
 - *float32:* ops that are fragile in 16 bits. On CUDA that list holds the loss functions (`cross_entropy`, `nll_loss`, `mse_loss`, `binary_cross_entropy_with_logits`, ...), `softmax`, `log_softmax`, `layer_norm`, `group_norm`, `sum`, `prod`, `cumsum`, `exp`, `log`, `pow` and the norms. On CPU the float32 list is shorter: the losses, linear algebra and a few pooling ops, but *not* `layer_norm`, `softmax` or `sum`, which run in their inputs' dtype. Room 4.6 asserts only what the CPU build does (Linear out in bfloat16, `cross_entropy` out in float32); on CUDA expect more float32 than you see here.
-- *Promote:* a few many-input ops (`addcmul`, `dot`, `tensordot`, and on CPU `cat` and `stack`) run in the widest dtype among their inputs.
+- *Promote:* a few many-input ops run in the widest dtype among their inputs. On CUDA that list holds `addcmul`, `dot`, `tensordot` and a handful more; on CPU it is only `cat`, `stack` and `index_copy`, and a CPU `dot` of a bfloat16 with a float32 simply raises.
 
 Everything else runs in whatever dtype its inputs already have. Parameters are never modified: an `nn.Linear` keeps float32 weights, autocast casts a bfloat16 copy on entry (and caches it for the duration of the block), and the parameter's `.grad` is float32. The pattern:
 

@@ -210,7 +210,7 @@ dungeon trial 6 room_1
 
 ### 6.2 The Veil of Causality — `rooms/room_2_veil_of_causality.py`
 
-A gauze veil between each head and the future. `causal_mask(T)`, `causal_attention(q, k, v)`, and the function this floor is really about: `leaks_future(attn_fn, B, T, d, seed) -> bool`, which perturbs the future and watches the past. The trial hands your detector an honest attention, an unveiled one, one with the veil applied after the softmax, and one hung a seat too far. It must acquit the first and convict the other three without reading a line of their code.
+A gauze veil between each head and the future. `causal_mask(T)`, `causal_attention(q, k, v)`, and the function this floor is really about: `leaks_future(attn_fn, B, T, d, seed) -> bool`, which perturbs the future and watches the past. The trial hands your detector an honest attention, an unveiled one, one with the veil applied after the softmax, one hung a seat too far, and one whose veil is honest but whose values were mixed with the next position's before attention. It must acquit the first and convict the other four without reading a line of their code.
 
 ```
 dungeon trial 6 room_2

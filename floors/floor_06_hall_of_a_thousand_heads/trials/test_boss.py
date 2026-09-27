@@ -62,6 +62,11 @@ def _peeks_at_one_seat(q, k, v):
     return scores.softmax(dim=-1) @ v
 
 
+def _hears_tomorrows_values(q, k, v):
+    """Honest weights, but v was mixed with the next seat's v first: every seat hears the values one seat ahead."""
+    return F.scaled_dot_product_attention(q, k, v + torch.roll(v, shifts=-1, dims=1), is_causal=True)
+
+
 ALL_FUTURE_PAIRS = [(t, j) for t in range(T) for j in range(t + 1, T)]
 ONE_STEP_PAIRS = [(t, t + 1) for t in range(T - 1)]
 
@@ -100,6 +105,14 @@ def test_phase_1_the_report_is_exact_down_to_a_single_seat():
         f"this oracle is honest except that seat 3 hears seat 5. Expected [(3, 5)], got {pairs}."
     )
     assert list(boss.detect_leaks(_peeks_at_one_seat, T, D, SEED)) == [3]
+
+
+def test_phase_1_a_leak_through_the_values_alone_is_reported_seat_by_seat():
+    pairs = boss.leak_pairs(_hears_tomorrows_values, T, D, SEED)
+    assert [tuple(p) for p in pairs] == ONE_STEP_PAIRS, (
+        f"this oracle's weights are honest but its VALUES were mixed with the next seat's before attention, so exactly "
+        f"{ONE_STEP_PAIRS} leak. Got {pairs}. Rewrite q, k and v at seat j; a detector that perturbs only the keys is blind here."
+    )
 
 
 def test_phase_1_the_report_is_made_of_plain_sorted_ints():

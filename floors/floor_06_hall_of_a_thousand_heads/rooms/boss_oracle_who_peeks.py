@@ -15,7 +15,7 @@ is a fixture you may read, but the detectors you write must not: they perturb
 the future and watch the past. That way they also work on the next oracle,
 whose code you will not have.
 
-The four oracles below are complete and deliberately flawed (or not). Do NOT
+The five oracles below are complete and deliberately flawed (or not). Do NOT
 fix them; they are the monsters. Same signature as Room 6.2's attn_fn for the
 first three; the padding pair also takes ``lengths`` and reads the whole
 scroll (no causal veil) but must ignore the blank parchment.

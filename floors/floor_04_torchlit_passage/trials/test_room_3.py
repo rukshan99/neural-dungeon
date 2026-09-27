@@ -129,6 +129,26 @@ def test_the_second_epoch_has_a_new_order_but_the_same_story():
     )
 
 
+def test_the_shuffle_does_not_lean_on_the_global_die():
+    ds = room.RuneDataset(X_SMALL, Y_SMALL)
+    state_before = torch.get_rng_state()
+    loader = room.make_loader(ds, 16, shuffle=True, seed=5)
+    assert torch.equal(torch.get_rng_state(), state_before), (
+        "Building the loader changed the global torch RNG state. Do not torch.manual_seed() inside make_loader; "
+        "hand the loader its own torch.Generator()."
+    )
+    torch.rand(100)  # the rest of the program draws from the global RNG before the epoch starts...
+    a = _labels_in_order(loader)
+    twin = room.make_loader(ds, 16, shuffle=True, seed=5)
+    torch.rand(3)  # ...and a different amount before the twin's epoch
+    b = _labels_in_order(twin)
+    assert a == b, (
+        "Two loaders with the same seed walked different orders once the global RNG was touched in between. "
+        "Without its own generator a DataLoader seeds each epoch from the global RNG, so the shuffle depends on "
+        "everything else the program did. Pass generator=torch.Generator().manual_seed(seed)."
+    )
+
+
 # ------------------------------------------------------------------ training and evaluation
 def _runes():
     X, y = make_runes(n_per_class=100, seed=0)

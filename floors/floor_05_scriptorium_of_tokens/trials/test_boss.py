@@ -106,6 +106,11 @@ def test_phase_1_merges_are_learned_most_frequent_first():
         f"After 'ab' became id 256, the pair (space, 256) appears twice and beats (c, d) at once; got {tok.merges[1]}. "
         "Whitespace is part of the pieces, so ' ab' becomes a token of its own."
     )
+    tok.train("cba", 257)
+    assert tok.merges == [(98, 97)], (
+        f"'cba' holds (c, b) and (b, a) once each. The tie goes to the smallest pair, (98, 97) = (b, a), not to the "
+        f"first one counted; got {tok.merges}."
+    )
 
 
 def test_phase_1_training_is_deterministic_and_starts_fresh(page, trained):

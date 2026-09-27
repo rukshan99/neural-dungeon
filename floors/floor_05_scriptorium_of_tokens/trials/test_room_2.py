@@ -68,6 +68,12 @@ def test_the_textbook_ledger_opens_with_es_est_and_low():
 def test_ties_are_broken_by_the_smallest_pair():
     # (a, b) and (b, c) both occur exactly once. "a" < "b", so (a, b) must win.
     assert room.train_bpe("abc", 1) == [("a", "b")], "Both pairs count 1; the tie goes to the lexicographically smallest."
+    # Here the smallest pair is NOT the first one counted: (b, a) is seen before (a, </w>) and must still lose.
+    got = room.train_bpe("ba", 1)
+    assert got == [("a", EOW)], (
+        f"In 'ba' the pairs (b, a) and (a, </w>) both count 1, and ('a', '</w>') < ('b', 'a'); you bound {got}. "
+        "max(pairs, key=pairs.get) keeps whichever pair was counted first; sort by (-count, pair) instead."
+    )
 
 
 def test_the_ledger_stops_when_nothing_is_left_to_bind():
@@ -137,6 +143,17 @@ PROPHECY_TRUTH = {
 def test_the_prophecy_is_complete():
     assert set(room.BPE_PROPHECY) == set(PROPHECY_TRUTH), "Do not rename or remove the prophecy's questions."
     assert room.TINY_CORPUS == "hug hug hug pug pun pun bun", "Leave TINY_CORPUS as it is."
+
+
+def test_the_ledger_agrees_with_the_prophecy_on_the_tiny_corpus():
+    merges = room.train_bpe(room.TINY_CORPUS, 3)
+    expected = [PROPHECY_TRUTH["first merge"], PROPHECY_TRUTH["second merge"], PROPHECY_TRUTH["third merge"]]
+    assert merges == expected, (
+        f"train_bpe on {room.TINY_CORPUS!r} should bind {expected}; yours binds {merges}. (u, g) and (g, </w>) both "
+        "count 4 and (g, </w>) is the smaller pair; a scribe who keeps the first pair counted binds (u, g) instead."
+    )
+    assert len(room.encode_bpe("hugs", merges)) == PROPHECY_TRUTH["tokens of 'hugs' after three merges"]
+    assert len(room.encode_bpe("hug pun", merges)) == PROPHECY_TRUTH["tokens of 'hug pun' after three merges"]
 
 
 @pytest.mark.parametrize("question", list(PROPHECY_TRUTH), ids=list(PROPHECY_TRUTH))

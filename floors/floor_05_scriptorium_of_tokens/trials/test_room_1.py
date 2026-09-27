@@ -152,3 +152,11 @@ def test_to_tensors_makes_a_long_rectangle():
         assert t.dtype == torch.long, f"{key} must be int64 (torch.long) so it can index an embedding; got {t.dtype}."
         assert tuple(t.shape) == (2, 5), f"{key} should be (B, T) = (2, 5), got {tuple(t.shape)}."
     assert int(tensors["attention_mask"].sum()) == 3 + 5
+    try:
+        decoded = tok.decode(tensors["input_ids"][1])
+    except (KeyError, TypeError) as exc:
+        pytest.fail(
+            f"decode() choked on a row of the tensor it just produced ({type(exc).__name__}: {exc}). "
+            "Torch scalars are not dict keys; call int(i) on every id first."
+        )
+    assert decoded == "abc", f"decode() of the tensor row for 'abc' gave {decoded!r}: skip the specials and the padding."
