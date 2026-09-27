@@ -1,0 +1,83 @@
+id = "floor_05"
+number = 5
+slug = "scriptorium_of_tokens"
+name = "The Scriptorium of Tokens"
+tagline = "Before a model can read a word, someone has to decide what a word is. The scribes down here have opinions."
+topics = ["what a token is", "character tokenizers, special tokens and attention masks", "byte-pair encoding", "byte-level BPE", "embeddings and positional encodings", "token budgets and cost"]
+requires = ["torch"]
+
+map = '''
+            ▼ stairs from Floor 4
+            │
+   ┌────────┴────────┐     ┌──────────────────┐     ┌──────────────────┐
+   │ 5.1 THE         │─────│ 5.2 BYTE-PAIR    │─────│ 5.3 THE          │
+   │  CHARACTER CODEX│     │     BINDING      │     │  EMBEDDING WELL  │
+   └─────────────────┘     └──────────────────┘     └────────┬─────────┘
+                                                             │
+   ┌─────────────────┐     ┌──────────────────┐              │
+   │ ☠ THE GOLEM'S   │─────│ 5.4 TOKEN        │──────────────┘
+   │     VAULT       │     │     ECONOMICS    │
+   └────────┬────────┘     └──────────────────┘
+            ┆  ◇ a ledger slides under the door: the Merchant's Alphabet
+            ▼  stairs down to Floor 6
+'''
+
+[lines]
+room_cleared = "The scribe blots the page, nods once, and slides the next sheet across the desk."
+room_failed = "The scribe reads your copy back to you, slowly, until you hear the mistake."
+boss_intro = "Something enormous made of vellum and brass unfolds in the vault. It holds a codex open in front of it like a shield. Its eyes scan you, character by character. One of them it has never seen."
+boss_defeated = "The Golem stops mid-word. It has just numbered a character it never learned, and nothing broke. It sits down, very carefully, and begins to read."
+floor_cleared = "The Scriptorium falls quiet. Every letter has a number and every number a vector. Below, something is paying attention."
+
+[[rooms]]
+id = "room_1"
+name = "The Character Codex"
+kind = "room"
+file = "rooms/room_1_character_codex.py"
+trial = "trials/test_room_1.py"
+blurb = "One id per character, four specials in red ink, and a batch padded into a rectangle with an honest attention mask."
+
+[[rooms]]
+id = "room_2"
+name = "Byte-Pair Binding"
+kind = "room"
+file = "rooms/room_2_byte_pair_binding.py"
+trial = "trials/test_room_2.py"
+blurb = "Learn merges from the Chronicles, replay them in rank order, and prophesy which pair binds first in a seven-word corpus."
+
+[[rooms]]
+id = "room_3"
+name = "The Embedding Well"
+kind = "room"
+file = "rooms/room_3_embedding_well.py"
+trial = "trials/test_room_3.py"
+blurb = "An embedding is a lookup table; one-hot @ W is the same lookup with the same gradient. Then sinusoidal and learned positions."
+
+[[rooms]]
+id = "room_4"
+name = "Token Economics"
+kind = "room"
+file = "rooms/room_4_token_economics.py"
+trial = "trials/test_room_4.py"
+blurb = "Count tokens, price a call, drop the oldest messages to fit a budget, and cut a scroll into overlapping windows."
+
+[[rooms]]
+id = "boss"
+name = "The Babel Golem"
+kind = "boss"
+file = "rooms/boss_babel_golem.py"
+trial = "trials/test_boss.py"
+blurb = "It shatters when shown a character it has never seen. Build a tokenizer whose vocabulary already contains everything: byte-level BPE."
+
+[[rooms]]
+id = "secret"
+name = "The Merchant's Alphabet"
+kind = "secret"
+file = "rooms/secret_merchants_alphabet.py"
+trial = "trials/test_secret.py"
+blurb = "GPT-2's 256 printable stand-ins for bytes, and the regular expression that cuts text into pieces before BPE ever runs."
+
+[[loot]]
+name = "Tokenization Cheat Sheet"
+file = "loot/tokenization_cheat_sheet.md"
+blurb = "Char vs word vs subword vs byte-level, BPE in six lines, special-token conventions, padding sides and masks, positional encodings, and the chunking recipe."

@@ -1,0 +1,5 @@
+`embedding_lookup` is `weight[ids]`: integer-tensor indexing picks whole rows and keeps the shape of `ids` in front. `embedding_as_matmul` is `torch.nn.functional.one_hot(ids, num_classes=weight.shape[0]).to(weight.dtype) @ weight`. `token_embedding` is one constructor call with `padding_idx=padding_idx`; PyTorch does the zeroing and the gradient masking for you.
+---
+Sinusoidal, without loops: `position = torch.arange(max_len, dtype=torch.float32)[:, None]` is `(max_len, 1)`; `two_i = torch.arange(0, d_model, 2, dtype=torch.float32)` is the even column indices; `rate = torch.exp(-math.log(10000.0) * two_i / d_model)` is `1 / 10000^(2i/d)`. `angles = position * rate` broadcasts to `(max_len, d_model // 2)`. Fill `pe[:, 0::2] = torch.sin(angles)` and `pe[:, 1::2] = torch.cos(angles)`.
+---
+`LearnedPositionalEmbedding.__init__`: `self.max_len = max_len; self.pos = nn.Embedding(max_len, d_model)`. `forward`: `T = x.shape[1]`; raise `ValueError` if `T > self.max_len`; `positions = torch.arange(T, device=x.device)`; return `x + self.pos(positions)`. The `(T, D)` table row-block broadcasts across the batch axis, which is rule 1 from Floor 0 doing its job.
