@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "neural-dungeon"
-version = "0.1.0"
+version = "0.2.0"
 description = "A gamified, code-first dungeon crawl from AI engineering fundamentals to production."
 readme = "README.md"
 requires-python = ">=3.11"

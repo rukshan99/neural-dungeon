@@ -10,4 +10,4 @@ This package is the *wrapper*, not the lesson. It knows how to:
 None of the machine learning lives here. That is all in ``floors/``.
 """
 
-__version__ = "0.1.0"
+__version__ = "0.2.0"
