@@ -51,3 +51,21 @@ jobs:
         env:
           NO_COLOR: "1"
         run: python scripts/check_stubs_fail.py
+
+  web:
+    name: browser bundle is built from web/src
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: web/package-lock.json
+      - name: Build
+        working-directory: web
+        run: |
+          npm ci
+          npm run build
+      - name: Committed bundle matches the source
+        run: git diff --exit-code --stat -- dungeon/web/static

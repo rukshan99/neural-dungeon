@@ -18,12 +18,13 @@ pip install -e ".[dev]"
 pip install torch --index-url https://download.pytorch.org/whl/cpu
 ```
 
-Three checks must pass before anything merges:
+Four checks must pass before anything merges:
 
 ```bash
 DUNGEON_SOLUTIONS=1 pytest floors        # every trial passes against solutions/
 python scripts/check_stubs_fail.py       # every trial fails against untouched rooms/
 python scripts/lint_floors.py            # every manifest, file, hint and loot path agrees
+pytest tests                             # the engine, the CLI and the web API
 ```
 
 `ruff check .` keeps the style consistent.
@@ -224,6 +225,15 @@ Accuracy beats atmosphere. If you are not sure a claim is correct, check it or c
 ## Voice
 
 Playful, dry, welcoming. Second person. Short sentences. The dungeon has a sense of humour about how hard this is and no contempt for anyone finding it hard. Bosses are allowed to be smug; the narrator is not.
+
+## The browser interface (`dungeon serve`)
+
+`dungeon/web/` is a FastAPI app over the same `registry` and `progress` modules the CLI uses; `web/` is the React + Vite frontend. Rules:
+
+- The browser never decides what is cleared. It reads the save file and runs pytest; `dungeon/web/runs.py` reports what changed by diffing the save file before and after a run.
+- The server binds to 127.0.0.1 only and serves files only from `floors/` and the top-level markdown. Keep it that way: it executes code from the clone.
+- Frontend changes: `cd web && npm install && npm run dev` (proxies `/api` to a running `dungeon serve`). Before committing run `npm run build`; the bundle in `dungeon/web/static/` is committed so players never need Node. CI checks that the committed bundle matches `web/src`.
+- API changes need a test in `tests/test_web.py`, which builds a tiny dungeon in a temporary directory.
 
 ## Submitting
 

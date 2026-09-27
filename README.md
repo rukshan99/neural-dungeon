@@ -51,6 +51,7 @@ dungeon trial 1 --secret     the optional secret room
 dungeon hint 1 room_2        reveal the next hint (three per room, one at a time)
 dungeon loot                 cheat sheets and tools you have unlocked
 dungeon status               your rank and numbers
+dungeon serve                the same game in your browser (see below)
 dungeon reset                start over (asks first)
 ```
 
@@ -65,6 +66,15 @@ The loop is always the same:
 `dungeon trial` is plain pytest underneath; `pytest floors/floor_01_caverns_of_descent` works too, and so do `-k`, `-x`, `--pdb` and friends. Progress is stored in `.dungeon/progress.json`, which is git-ignored: it is your save file. A room counts as cleared only when its *whole* trial file passes in one run.
 
 Every room has a reference implementation in `solutions/`. It is there so the repository can test itself and so you can compare after an honest attempt. Locks on loot are on the honour system.
+
+### Playing in the browser
+
+```bash
+pip install -e ".[web]"
+dungeon serve
+```
+
+opens a local page (127.0.0.1 only) with the map, every floor's lesson rendered, room cards, live-streamed trial output, hints, boss HP bars and loot. You still write code in your own editor; the page watches your room files and save file and refreshes itself. Every verdict is still pytest's: the browser is a view on the same save file the CLI uses, never a second source of truth. The frontend lives in [web/](web/) (React + Vite) and its built bundle is committed, so you do not need Node to play.
 
 ## The map
 
@@ -136,6 +146,8 @@ Outside that path, and not covered (yet): convolutional networks and computer vi
 DUNGEON_SOLUTIONS=1 pytest floors        # every trial must pass against the reference solutions
 python scripts/check_stubs_fail.py       # every trial must fail against the untouched stubs
 python scripts/lint_floors.py            # every manifest, room, trial, hint and loot path must agree
+pytest tests                             # the engine and the web API
+cd web && npm ci && npm run build        # rebuild the browser bundle after changing web/src
 ```
 
 ## License
