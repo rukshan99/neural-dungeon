@@ -19,8 +19,8 @@ map = '''
    │     TRENCH      │     │ (to the outside) │     │   (a wall of gauges) │
    └────────┬────────┘     └──────────────────┘     └──────────────────────┘
             ┆  ◇ a spark jumping the trench: the Speculative Spark
-            ■  Nothing below the Engine Room. This is the bottom. A service lift,
-            ▲  unnoticed on the way down, rises to the Watchtower (Floor 13).
+            ■  The bottom. Nothing below. But a service lift, unnoticed
+            ▲  on the way down, rises to the Watchtower (Floor 13).
 '''
 
 [lines]

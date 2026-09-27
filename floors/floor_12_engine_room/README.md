@@ -15,8 +15,8 @@
    │     TRENCH      │     │ (to the outside) │     │   (a wall of gauges) │
    └────────┬────────┘     └──────────────────┘     └──────────────────────┘
             ┆  ◇ a spark jumping the trench: the Speculative Spark
-            ■  Nothing below the Engine Room. This is the bottom. A service lift,
-            ▲  unnoticed on the way down, rises to the Watchtower (Floor 13).
+            ■  The bottom. Nothing below. But a service lift, unnoticed
+            ▲  on the way down, rises to the Watchtower (Floor 13).
 ```
 
 The stairs end here. Every floor above taught you to build and train the machine; this one is about *running* it, when someone else is waiting on the other end of a socket. The Chronicler you meet here is the same 802,560-parameter GPT from `dungeon/artifacts/chronicler.pt`. You will not train it. You will make it fast, small, concurrent, measured, and reachable.
