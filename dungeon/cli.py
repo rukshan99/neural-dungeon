@@ -23,9 +23,8 @@ import subprocess
 import sys
 from pathlib import Path
 
-from dungeon import __version__
+from dungeon import __version__, ui
 from dungeon import progress as prog
-from dungeon import ui
 from dungeon.registry import DungeonError, Floor, Room, find_root, load_floors, resolve_floor
 
 # ----------------------------------------------------------------------------

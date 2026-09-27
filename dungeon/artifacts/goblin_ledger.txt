@@ -1,0 +1,696 @@
+GOBLIN QUARTERMASTER'S LEDGER | floor stock | do not lose
+item: hardtack | qty: 2 | price: 33 silver | note: needs a label
+item: hardtack | qty: 24 | price: 27 silver | note: still sharp-ish
+item: copper wire | qty: 24 | price: 56 copper | note: needs a label
+item: hardtack | qty: 6 | price: 76 copper | note: still sharp-ish
+-- day 1 | stocktake | ludo on duty --
+item: brass gear | qty: 24 | price: 88 silver | note: still sharp-ish
+item: ledger paper | qty: 64 | price: 64 copper | note: confiscated
+item: quill | qty: 6 | price: 98 copper | note: still sharp-ish
+item: lens | qty: 2 | price: 24 gold | note: ask Ilva
+item: glass vial | qty: 12 | price: 93 silver | note: leaks
+item: salt | qty: 5 | price: 39 silver | note: promised to nobody
+item: tin cup | qty: 24 | price: 76 copper | note: promised to nobody
+item: spare boot | qty: 24 | price: 54 copper | note: confiscated
+item: quill | qty: 16 | price: 12 gold | note: seed 42
+item: wax seal | qty: 4 | price: 67 silver | note: confiscated
+item: lamp oil | qty: 1 | price: 61 copper | note: reserved
+item: iron key | qty: 24 | price: 83 copper | note: seed 42
+item: brass gear | qty: 1 | price: 99 silver | note: definitely cursed
+item: bandage | qty: 16 | price: 74 silver | note: priced by weight
+item: knotted cord | qty: 1 | price: 50 gold | note: seed 42
+item: lamp oil | qty: 5 | price: 55 silver | note: confiscated
+item: whetstone | qty: 5 | price: 65 silver | note: confiscated
+item: ledger paper | qty: 1 | price: 69 silver | note: reserved
+item: lens | qty: 1 | price: 30 copper | note: definitely cursed
+item: knotted cord | qty: 2 | price: 71 copper | note: smells wrong
+item: tin cup | qty: 2 | price: 11 copper | note: needs a label
+-- day 2 | stocktake | sigrun on duty --
+item: knotted cord | qty: 8 | price: 15 silver | note: found on floor 3
+item: iron key | qty: 2 | price: 22 copper | note: seed 42
+item: glass vial | qty: 8 | price: 83 copper | note: needs a label
+item: hardtack | qty: 128 | price: 61 copper | note: ask Ilva
+item: map fragment | qty: 32 | price: 25 copper | note: priced by weight
+item: whetstone | qty: 5 | price: 78 copper | note: buyer regretted
+-- day 3 | stocktake | oduya on duty --
+-- day 4 | stocktake | pell on duty --
+item: wax seal | qty: 32 | price: 70 copper | note: seed 42
+item: spare boot | qty: 1 | price: 51 silver | note: for the boss fight
+item: flint | qty: 32 | price: 8 copper | note: one missing
+item: rope (128 knots) | qty: 1 | price: 40 copper | note: ask Ilva
+item: iron key | qty: 10 | price: 96 silver | note: probably fine
+item: goblin biscuit | qty: 1 | price: 72 copper | note: probably fine
+item: wax seal | qty: 64 | price: 22 gold | note: reserved
+item: bandage | qty: 24 | price: 26 copper | note: returned damp
+item: brass gear | qty: 32 | price: 76 silver | note: counted twice
+item: ink (red) | qty: 24 | price: 38 silver | note: still sharp-ish
+item: rusty dagger | qty: 24 | price: 37 copper | note: returned damp
+item: whetstone | qty: 3 | price: 44 copper | note: priced by weight
+item: bandage | qty: 24 | price: 71 gold | note: definitely cursed
+item: flint | qty: 6 | price: 9 copper | note: do not lend to Pell
+item: brass gear | qty: 4 | price: 69 copper | note: for the boss fight
+item: candle | qty: 8 | price: 48 copper | note: counted twice
+item: seed pouch | qty: 128 | price: 18 silver | note: counted twice
+item: bell clapper | qty: 32 | price: 10 copper | note: one missing
+item: seed pouch | qty: 24 | price: 10 silver | note: buyer regretted
+item: goblin biscuit | qty: 8 | price: 47 copper | note: probably fine
+item: goblin biscuit | qty: 2 | price: 59 copper | note: counted twice
+item: copper wire | qty: 10 | price: 2 gold | note: still sharp-ish
+item: brass gear | qty: 2 | price: 6 copper | note: probably fine
+item: iron key | qty: 2 | price: 58 gold | note: buyer regretted
+item: bell clapper | qty: 2 | price: 56 silver | note: ask Ilva
+item: hardtack | qty: 128 | price: 41 copper | note: for the boss fight
+-- day 5 | stocktake | ilva on duty --
+item: copper wire | qty: 10 | price: 93 copper | note: needs a label
+item: rope (128 knots) | qty: 24 | price: 9 copper | note: reserved
+item: brass gear | qty: 2 | price: 33 silver | note: definitely cursed
+item: bandage | qty: 128 | price: 85 copper | note: found on floor 3
+item: torch | qty: 10 | price: 26 copper | note: do not lend to Pell
+item: quill | qty: 2 | price: 97 copper | note: probably fine
+item: salt | qty: 6 | price: 50 copper | note: for the boss fight
+item: candle | qty: 10 | price: 32 copper | note: definitely cursed
+item: torch | qty: 2 | price: 32 copper | note: buyer regretted
+item: tin cup | qty: 8 | price: 71 copper | note: do not lend to Pell
+-- day 6 | stocktake | ilva on duty --
+item: ink (black) | qty: 16 | price: 64 copper | note: counted twice
+item: ink (red) | qty: 12 | price: 10 gold | note: found on floor 3
+item: wax seal | qty: 3 | price: 19 copper | note: ask Ilva
+item: goblin biscuit | qty: 10 | price: 17 copper | note: one missing
+item: wax seal | qty: 1 | price: 41 silver | note: definitely cursed
+item: salt | qty: 5 | price: 23 silver | note: definitely cursed
+item: small mirror | qty: 6 | price: 33 copper | note: needs a label
+item: quill | qty: 8 | price: 70 silver | note: needs a label
+-- day 7 | stocktake | vasha on duty --
+item: rusty dagger | qty: 8 | price: 63 gold | note: leaks
+item: glass vial | qty: 1 | price: 8 copper | note: probably fine
+item: map fragment | qty: 3 | price: 18 copper | note: burns blue
+item: rope (128 knots) | qty: 4 | price: 79 copper | note: promised to nobody
+-- day 8 | stocktake | ruel on duty --
+item: lens | qty: 64 | price: 88 gold | note: buyer regretted
+item: ink (black) | qty: 128 | price: 88 copper | note: leaks
+item: torch | qty: 8 | price: 83 copper | note: do not lend to Pell
+item: ink (red) | qty: 16 | price: 21 copper | note: ask Ilva
+item: bandage | qty: 10 | price: 71 copper | note: needs a label
+item: ink (red) | qty: 2 | price: 78 silver | note: burns blue
+item: brass gear | qty: 8 | price: 55 silver | note: smells wrong
+item: lens | qty: 24 | price: 92 copper | note: burns blue
+item: flint | qty: 4 | price: 70 copper | note: seed 42
+item: hardtack | qty: 8 | price: 81 copper | note: do not lend to Pell
+item: wax seal | qty: 3 | price: 79 gold | note: do not lend to Pell
+item: knotted cord | qty: 6 | price: 49 silver | note: burns blue
+item: chalk | qty: 12 | price: 57 silver | note: promised to nobody
+item: copper wire | qty: 2 | price: 56 silver | note: leaks
+item: torch | qty: 10 | price: 36 silver | note: definitely cursed
+-- day 9 | stocktake | mirren on duty --
+item: lens | qty: 1 | price: 4 silver | note: buyer regretted
+item: salt | qty: 5 | price: 23 copper | note: definitely cursed
+item: small mirror | qty: 10 | price: 75 copper | note: needs a label
+item: bandage | qty: 4 | price: 70 silver | note: leaks
+item: goblin biscuit | qty: 5 | price: 74 silver | note: returned damp
+item: hardtack | qty: 2 | price: 4 silver | note: still sharp-ish
+item: ink (red) | qty: 3 | price: 10 copper | note: probably fine
+item: spare boot | qty: 32 | price: 65 copper | note: seed 42
+item: glass vial | qty: 2 | price: 57 silver | note: confiscated
+item: knotted cord | qty: 24 | price: 44 gold | note: probably fine
+item: brass gear | qty: 24 | price: 49 silver | note: still sharp-ish
+item: copper wire | qty: 5 | price: 60 silver | note: leaks
+item: iron key | qty: 10 | price: 90 silver | note: reserved
+item: ink (red) | qty: 5 | price: 47 copper | note: burns blue
+item: tin cup | qty: 24 | price: 44 silver | note: probably fine
+item: flint | qty: 2 | price: 64 copper | note: ask Ilva
+item: lens | qty: 32 | price: 93 copper | note: burns blue
+item: rope (128 knots) | qty: 4 | price: 99 silver | note: still sharp-ish
+item: whetstone | qty: 8 | price: 91 gold | note: definitely cursed
+item: ink (black) | qty: 64 | price: 34 copper | note: needs a label
+item: hardtack | qty: 8 | price: 66 gold | note: probably fine
+item: spare boot | qty: 16 | price: 9 silver | note: still sharp-ish
+item: rope (128 knots) | qty: 4 | price: 89 silver | note: priced by weight
+item: brass gear | qty: 5 | price: 68 copper | note: for the boss fight
+item: wax seal | qty: 2 | price: 90 silver | note: confiscated
+item: salt | qty: 1 | price: 22 gold | note: definitely cursed
+item: ledger paper | qty: 6 | price: 51 silver | note: found on floor 3
+item: candle | qty: 8 | price: 79 gold | note: buyer regretted
+item: rusty dagger | qty: 6 | price: 85 silver | note: burns blue
+item: torch | qty: 32 | price: 98 copper | note: returned damp
+item: quill | qty: 4 | price: 75 silver | note: one missing
+item: ink (red) | qty: 8 | price: 59 copper | note: one missing
+item: salt | qty: 64 | price: 47 silver | note: buyer regretted
+item: spare boot | qty: 5 | price: 92 copper | note: do not lend to Pell
+item: ink (black) | qty: 24 | price: 42 copper | note: found on floor 3
+-- day 10 | stocktake | tadeo on duty --
+item: lamp oil | qty: 5 | price: 88 silver | note: seed 42
+item: spare boot | qty: 64 | price: 44 copper | note: counted twice
+item: torch | qty: 4 | price: 13 silver | note: buyer regretted
+item: iron key | qty: 24 | price: 97 copper | note: buyer regretted
+item: seed pouch | qty: 64 | price: 71 silver | note: returned damp
+item: ink (black) | qty: 8 | price: 43 silver | note: counted twice
+item: rusty dagger | qty: 2 | price: 6 copper | note: promised to nobody
+item: salt | qty: 24 | price: 75 copper | note: burns blue
+item: rusty dagger | qty: 3 | price: 4 silver | note: one missing
+item: bell clapper | qty: 1 | price: 73 copper | note: one missing
+item: lamp oil | qty: 10 | price: 2 silver | note: smells wrong
+item: map fragment | qty: 3 | price: 6 copper | note: leaks
+item: lens | qty: 1 | price: 64 copper | note: priced by weight
+item: quill | qty: 5 | price: 85 silver | note: for the boss fight
+item: lens | qty: 8 | price: 83 copper | note: buyer regretted
+item: whetstone | qty: 4 | price: 45 silver | note: definitely cursed
+item: ledger paper | qty: 1 | price: 46 silver | note: definitely cursed
+item: rope (128 knots) | qty: 32 | price: 85 gold | note: priced by weight
+item: iron key | qty: 2 | price: 33 copper | note: one missing
+-- day 11 | stocktake | mirren on duty --
+item: lens | qty: 1 | price: 7 copper | note: seed 42
+item: candle | qty: 16 | price: 13 copper | note: one missing
+item: chalk | qty: 64 | price: 86 silver | note: needs a label
+-- day 12 | stocktake | ruel on duty --
+item: rope (128 knots) | qty: 8 | price: 42 copper | note: smells wrong
+item: map fragment | qty: 1 | price: 94 copper | note: one missing
+item: tin cup | qty: 24 | price: 15 gold | note: ask Ilva
+item: ledger paper | qty: 6 | price: 65 copper | note: for the boss fight
+item: ink (black) | qty: 24 | price: 75 copper | note: one missing
+item: ledger paper | qty: 64 | price: 68 gold | note: probably fine
+item: flint | qty: 1 | price: 38 copper | note: returned damp
+item: whetstone | qty: 12 | price: 13 copper | note: one missing
+item: wax seal | qty: 1 | price: 39 gold | note: definitely cursed
+item: bandage | qty: 10 | price: 41 copper | note: for the boss fight
+item: hardtack | qty: 1 | price: 68 copper | note: for the boss fight
+item: seed pouch | qty: 12 | price: 42 copper | note: needs a label
+item: bandage | qty: 128 | price: 59 gold | note: burns blue
+item: knotted cord | qty: 2 | price: 75 copper | note: one missing
+-- day 13 | stocktake | temperance on duty --
+item: glass vial | qty: 8 | price: 32 silver | note: for the boss fight
+item: salt | qty: 16 | price: 52 silver | note: reserved
+item: chalk | qty: 4 | price: 4 copper | note: buyer regretted
+item: small mirror | qty: 2 | price: 24 silver | note: reserved
+-- day 14 | stocktake | sefa on duty --
+item: hardtack | qty: 8 | price: 92 copper | note: priced by weight
+item: knotted cord | qty: 2 | price: 10 copper | note: found on floor 3
+item: seed pouch | qty: 32 | price: 3 copper | note: promised to nobody
+item: goblin biscuit | qty: 10 | price: 29 copper | note: reserved
+item: quill | qty: 6 | price: 55 gold | note: confiscated
+item: flint | qty: 5 | price: 62 copper | note: priced by weight
+item: ledger paper | qty: 1 | price: 96 silver | note: seed 42
+item: copper wire | qty: 2 | price: 52 silver | note: probably fine
+item: tin cup | qty: 1 | price: 46 silver | note: still sharp-ish
+item: glass vial | qty: 10 | price: 90 gold | note: still sharp-ish
+item: goblin biscuit | qty: 10 | price: 66 gold | note: for the boss fight
+item: whetstone | qty: 10 | price: 68 silver | note: seed 42
+item: salt | qty: 10 | price: 58 copper | note: seed 42
+item: small mirror | qty: 3 | price: 71 copper | note: priced by weight
+item: spare boot | qty: 32 | price: 95 silver | note: smells wrong
+item: spare boot | qty: 24 | price: 37 gold | note: still sharp-ish
+item: bell clapper | qty: 2 | price: 1 copper | note: needs a label
+item: flint | qty: 16 | price: 82 silver | note: for the boss fight
+item: bandage | qty: 2 | price: 62 copper | note: leaks
+item: bandage | qty: 4 | price: 34 copper | note: probably fine
+item: ink (red) | qty: 32 | price: 34 copper | note: leaks
+item: small mirror | qty: 32 | price: 43 silver | note: returned damp
+item: glass vial | qty: 128 | price: 52 silver | note: do not lend to Pell
+item: torch | qty: 5 | price: 20 gold | note: still sharp-ish
+item: small mirror | qty: 3 | price: 62 copper | note: burns blue
+item: rope (128 knots) | qty: 4 | price: 1 silver | note: reserved
+item: brass gear | qty: 1 | price: 71 silver | note: leaks
+item: ledger paper | qty: 2 | price: 95 gold | note: leaks
+item: spare boot | qty: 2 | price: 34 copper | note: found on floor 3
+item: spare boot | qty: 1 | price: 28 gold | note: do not lend to Pell
+item: quill | qty: 2 | price: 86 copper | note: seed 42
+item: copper wire | qty: 24 | price: 15 silver | note: counted twice
+item: ink (red) | qty: 5 | price: 22 copper | note: leaks
+item: lens | qty: 10 | price: 64 silver | note: returned damp
+item: hardtack | qty: 12 | price: 63 copper | note: confiscated
+item: ledger paper | qty: 8 | price: 8 gold | note: needs a label
+item: ink (red) | qty: 2 | price: 30 copper | note: priced by weight
+item: chalk | qty: 32 | price: 19 copper | note: returned damp
+item: wax seal | qty: 1 | price: 69 silver | note: seed 42
+item: map fragment | qty: 32 | price: 35 silver | note: ask Ilva
+item: bandage | qty: 5 | price: 64 silver | note: promised to nobody
+item: small mirror | qty: 4 | price: 78 copper | note: probably fine
+item: ink (red) | qty: 3 | price: 8 copper | note: seed 42
+item: copper wire | qty: 5 | price: 41 silver | note: promised to nobody
+item: glass vial | qty: 3 | price: 18 copper | note: buyer regretted
+item: iron key | qty: 1 | price: 73 gold | note: counted twice
+item: seed pouch | qty: 5 | price: 65 gold | note: ask Ilva
+item: wax seal | qty: 1 | price: 3 copper | note: reserved
+item: spare boot | qty: 6 | price: 36 gold | note: for the boss fight
+item: hardtack | qty: 24 | price: 3 copper | note: confiscated
+item: chalk | qty: 8 | price: 99 gold | note: probably fine
+-- day 15 | stocktake | brannoc on duty --
+item: candle | qty: 2 | price: 39 copper | note: priced by weight
+item: rope (128 knots) | qty: 16 | price: 4 copper | note: burns blue
+item: spare boot | qty: 6 | price: 13 copper | note: priced by weight
+-- day 16 | stocktake | bellamy on duty --
+item: knotted cord | qty: 2 | price: 46 gold | note: one missing
+item: rope (128 knots) | qty: 8 | price: 52 gold | note: probably fine
+item: whetstone | qty: 128 | price: 73 silver | note: burns blue
+item: salt | qty: 6 | price: 81 silver | note: one missing
+-- day 17 | stocktake | ruel on duty --
+item: goblin biscuit | qty: 6 | price: 28 silver | note: priced by weight
+item: map fragment | qty: 8 | price: 69 silver | note: priced by weight
+item: hardtack | qty: 24 | price: 91 gold | note: confiscated
+item: ledger paper | qty: 16 | price: 70 gold | note: seed 42
+item: salt | qty: 1 | price: 80 silver | note: one missing
+item: goblin biscuit | qty: 3 | price: 87 copper | note: promised to nobody
+item: goblin biscuit | qty: 12 | price: 47 copper | note: found on floor 3
+item: bell clapper | qty: 24 | price: 57 copper | note: reserved
+item: spare boot | qty: 10 | price: 86 gold | note: reserved
+item: chalk | qty: 1 | price: 83 silver | note: definitely cursed
+item: rusty dagger | qty: 2 | price: 59 silver | note: reserved
+item: whetstone | qty: 8 | price: 48 silver | note: reserved
+item: small mirror | qty: 2 | price: 61 copper | note: still sharp-ish
+item: chalk | qty: 2 | price: 76 silver | note: seed 42
+item: lens | qty: 8 | price: 73 copper | note: promised to nobody
+item: torch | qty: 6 | price: 80 copper | note: definitely cursed
+item: small mirror | qty: 4 | price: 15 copper | note: for the boss fight
+item: spare boot | qty: 16 | price: 33 gold | note: smells wrong
+item: bandage | qty: 32 | price: 49 copper | note: for the boss fight
+item: copper wire | qty: 6 | price: 82 silver | note: one missing
+-- day 18 | stocktake | maren on duty --
+item: lens | qty: 4 | price: 70 gold | note: promised to nobody
+item: rusty dagger | qty: 2 | price: 75 silver | note: returned damp
+item: glass vial | qty: 4 | price: 51 copper | note: counted twice
+item: torch | qty: 12 | price: 85 gold | note: needs a label
+item: lens | qty: 16 | price: 64 gold | note: returned damp
+item: hardtack | qty: 24 | price: 70 silver | note: promised to nobody
+item: rusty dagger | qty: 3 | price: 20 silver | note: leaks
+item: rope (128 knots) | qty: 1 | price: 84 copper | note: needs a label
+item: chalk | qty: 10 | price: 20 silver | note: counted twice
+item: bell clapper | qty: 1 | price: 60 gold | note: buyer regretted
+item: ledger paper | qty: 24 | price: 1 copper | note: leaks
+item: spare boot | qty: 4 | price: 44 copper | note: do not lend to Pell
+item: bell clapper | qty: 4 | price: 23 silver | note: still sharp-ish
+item: knotted cord | qty: 32 | price: 31 copper | note: seed 42
+item: bell clapper | qty: 2 | price: 32 silver | note: counted twice
+item: rope (128 knots) | qty: 1 | price: 50 silver | note: counted twice
+item: ink (red) | qty: 128 | price: 6 copper | note: still sharp-ish
+-- day 19 | stocktake | yusuf on duty --
+item: whetstone | qty: 8 | price: 93 copper | note: reserved
+item: ledger paper | qty: 12 | price: 99 gold | note: needs a label
+item: iron key | qty: 32 | price: 71 gold | note: burns blue
+item: wax seal | qty: 5 | price: 64 copper | note: confiscated
+item: map fragment | qty: 8 | price: 73 copper | note: reserved
+item: chalk | qty: 16 | price: 44 copper | note: priced by weight
+item: seed pouch | qty: 24 | price: 36 silver | note: still sharp-ish
+item: torch | qty: 3 | price: 33 copper | note: do not lend to Pell
+item: whetstone | qty: 5 | price: 70 gold | note: buyer regretted
+item: glass vial | qty: 64 | price: 51 copper | note: do not lend to Pell
+item: knotted cord | qty: 2 | price: 20 gold | note: smells wrong
+-- day 20 | stocktake | nkechi on duty --
+item: copper wire | qty: 3 | price: 76 copper | note: definitely cursed
+item: chalk | qty: 6 | price: 49 copper | note: returned damp
+item: flint | qty: 24 | price: 46 copper | note: buyer regretted
+item: ink (black) | qty: 3 | price: 45 silver | note: ask Ilva
+item: glass vial | qty: 10 | price: 27 silver | note: still sharp-ish
+item: bandage | qty: 2 | price: 79 silver | note: priced by weight
+item: iron key | qty: 1 | price: 41 copper | note: counted twice
+item: seed pouch | qty: 32 | price: 82 copper | note: returned damp
+item: goblin biscuit | qty: 24 | price: 16 gold | note: returned damp
+item: ink (red) | qty: 24 | price: 85 copper | note: probably fine
+item: hardtack | qty: 1 | price: 92 copper | note: probably fine
+item: copper wire | qty: 128 | price: 70 copper | note: priced by weight
+-- day 21 | stocktake | pell on duty --
+item: map fragment | qty: 6 | price: 53 gold | note: leaks
+item: spare boot | qty: 128 | price: 13 copper | note: found on floor 3
+item: lamp oil | qty: 64 | price: 97 silver | note: returned damp
+item: hardtack | qty: 12 | price: 32 copper | note: smells wrong
+item: iron key | qty: 64 | price: 25 silver | note: seed 42
+item: bandage | qty: 24 | price: 67 copper | note: buyer regretted
+item: goblin biscuit | qty: 2 | price: 44 copper | note: needs a label
+-- day 22 | stocktake | ines on duty --
+item: ink (black) | qty: 3 | price: 37 copper | note: probably fine
+item: bell clapper | qty: 24 | price: 12 silver | note: probably fine
+item: goblin biscuit | qty: 24 | price: 35 copper | note: promised to nobody
+item: tin cup | qty: 1 | price: 71 silver | note: still sharp-ish
+item: copper wire | qty: 12 | price: 20 silver | note: definitely cursed
+item: tin cup | qty: 8 | price: 9 silver | note: confiscated
+item: seed pouch | qty: 1 | price: 74 copper | note: smells wrong
+item: goblin biscuit | qty: 1 | price: 13 copper | note: for the boss fight
+item: bandage | qty: 1 | price: 82 silver | note: do not lend to Pell
+item: quill | qty: 2 | price: 70 copper | note: seed 42
+item: candle | qty: 1 | price: 21 copper | note: returned damp
+item: hardtack | qty: 3 | price: 76 silver | note: for the boss fight
+item: candle | qty: 32 | price: 47 copper | note: reserved
+item: lens | qty: 2 | price: 99 copper | note: priced by weight
+item: salt | qty: 24 | price: 71 silver | note: reserved
+item: whetstone | qty: 4 | price: 35 copper | note: one missing
+item: brass gear | qty: 8 | price: 31 copper | note: priced by weight
+item: ink (red) | qty: 1 | price: 95 copper | note: returned damp
+item: candle | qty: 2 | price: 71 copper | note: ask Ilva
+item: quill | qty: 3 | price: 5 copper | note: smells wrong
+-- day 23 | stocktake | wren on duty --
+item: lamp oil | qty: 4 | price: 72 gold | note: probably fine
+item: goblin biscuit | qty: 32 | price: 24 copper | note: buyer regretted
+item: ink (red) | qty: 3 | price: 76 copper | note: priced by weight
+item: quill | qty: 1 | price: 47 copper | note: reserved
+item: rusty dagger | qty: 6 | price: 82 copper | note: promised to nobody
+-- day 24 | stocktake | anouk on duty --
+item: torch | qty: 1 | price: 2 copper | note: seed 42
+item: brass gear | qty: 1 | price: 68 copper | note: needs a label
+item: bandage | qty: 128 | price: 65 copper | note: burns blue
+item: copper wire | qty: 2 | price: 25 copper | note: returned damp
+item: whetstone | qty: 10 | price: 75 silver | note: promised to nobody
+item: hardtack | qty: 128 | price: 3 gold | note: probably fine
+item: seed pouch | qty: 32 | price: 91 copper | note: for the boss fight
+item: glass vial | qty: 32 | price: 25 silver | note: promised to nobody
+item: spare boot | qty: 128 | price: 77 gold | note: probably fine
+item: ink (black) | qty: 64 | price: 78 copper | note: priced by weight
+item: small mirror | qty: 10 | price: 73 silver | note: reserved
+item: rusty dagger | qty: 8 | price: 40 silver | note: smells wrong
+item: torch | qty: 64 | price: 46 silver | note: needs a label
+item: glass vial | qty: 128 | price: 43 gold | note: one missing
+item: lens | qty: 32 | price: 7 copper | note: confiscated
+item: small mirror | qty: 1 | price: 33 silver | note: smells wrong
+item: candle | qty: 1 | price: 42 copper | note: probably fine
+item: glass vial | qty: 1 | price: 27 copper | note: for the boss fight
+item: small mirror | qty: 2 | price: 17 gold | note: ask Ilva
+item: rusty dagger | qty: 12 | price: 30 gold | note: found on floor 3
+item: salt | qty: 16 | price: 39 silver | note: leaks
+item: brass gear | qty: 64 | price: 10 silver | note: buyer regretted
+item: torch | qty: 6 | price: 81 copper | note: burns blue
+item: salt | qty: 3 | price: 93 gold | note: confiscated
+-- day 25 | stocktake | okonkwo on duty --
+item: iron key | qty: 64 | price: 64 gold | note: one missing
+-- day 26 | stocktake | halvard on duty --
+item: ink (black) | qty: 12 | price: 66 copper | note: reserved
+item: spare boot | qty: 10 | price: 71 copper | note: leaks
+-- day 27 | stocktake | dov on duty --
+item: ink (red) | qty: 128 | price: 15 copper | note: reserved
+item: bandage | qty: 8 | price: 56 copper | note: smells wrong
+item: salt | qty: 4 | price: 17 copper | note: do not lend to Pell
+item: flint | qty: 1 | price: 55 gold | note: still sharp-ish
+item: ledger paper | qty: 1 | price: 5 copper | note: for the boss fight
+item: brass gear | qty: 1 | price: 72 silver | note: returned damp
+item: iron key | qty: 8 | price: 30 copper | note: burns blue
+item: glass vial | qty: 6 | price: 72 silver | note: smells wrong
+item: rusty dagger | qty: 32 | price: 16 silver | note: found on floor 3
+item: iron key | qty: 2 | price: 98 copper | note: buyer regretted
+item: knotted cord | qty: 2 | price: 8 copper | note: one missing
+item: torch | qty: 64 | price: 20 copper | note: ask Ilva
+item: rope (128 knots) | qty: 1 | price: 76 silver | note: returned damp
+item: lamp oil | qty: 4 | price: 16 copper | note: smells wrong
+item: knotted cord | qty: 2 | price: 12 gold | note: buyer regretted
+item: whetstone | qty: 8 | price: 68 copper | note: smells wrong
+item: bandage | qty: 5 | price: 42 copper | note: needs a label
+item: bell clapper | qty: 24 | price: 87 copper | note: leaks
+item: iron key | qty: 128 | price: 44 silver | note: counted twice
+item: ledger paper | qty: 32 | price: 36 copper | note: for the boss fight
+item: quill | qty: 16 | price: 53 copper | note: confiscated
+item: rusty dagger | qty: 128 | price: 66 copper | note: one missing
+item: chalk | qty: 10 | price: 73 silver | note: one missing
+item: iron key | qty: 3 | price: 18 copper | note: reserved
+item: candle | qty: 16 | price: 83 copper | note: priced by weight
+item: whetstone | qty: 10 | price: 10 copper | note: definitely cursed
+item: tin cup | qty: 64 | price: 14 copper | note: for the boss fight
+item: ledger paper | qty: 4 | price: 62 copper | note: smells wrong
+item: bandage | qty: 5 | price: 84 gold | note: confiscated
+item: lens | qty: 16 | price: 65 gold | note: confiscated
+item: bell clapper | qty: 2 | price: 24 copper | note: priced by weight
+item: torch | qty: 5 | price: 8 copper | note: for the boss fight
+item: small mirror | qty: 6 | price: 47 copper | note: buyer regretted
+item: hardtack | qty: 1 | price: 26 copper | note: buyer regretted
+item: iron key | qty: 8 | price: 19 copper | note: do not lend to Pell
+item: seed pouch | qty: 32 | price: 57 silver | note: promised to nobody
+item: whetstone | qty: 16 | price: 26 copper | note: priced by weight
+item: small mirror | qty: 3 | price: 18 copper | note: still sharp-ish
+item: lamp oil | qty: 16 | price: 24 copper | note: do not lend to Pell
+item: quill | qty: 5 | price: 12 gold | note: returned damp
+item: glass vial | qty: 4 | price: 74 gold | note: still sharp-ish
+item: lamp oil | qty: 128 | price: 71 copper | note: confiscated
+item: ink (black) | qty: 16 | price: 18 copper | note: seed 42
+item: candle | qty: 10 | price: 78 silver | note: do not lend to Pell
+item: map fragment | qty: 32 | price: 10 copper | note: for the boss fight
+-- day 28 | stocktake | pell on duty --
+item: map fragment | qty: 6 | price: 41 copper | note: ask Ilva
+item: salt | qty: 32 | price: 2 copper | note: ask Ilva
+-- day 29 | stocktake | ysolde on duty --
+item: bandage | qty: 5 | price: 36 gold | note: probably fine
+item: map fragment | qty: 10 | price: 78 gold | note: found on floor 3
+item: bell clapper | qty: 16 | price: 13 copper | note: seed 42
+item: quill | qty: 5 | price: 51 copper | note: promised to nobody
+item: flint | qty: 6 | price: 5 gold | note: buyer regretted
+item: ink (red) | qty: 2 | price: 5 silver | note: promised to nobody
+item: knotted cord | qty: 12 | price: 67 copper | note: probably fine
+item: bell clapper | qty: 24 | price: 2 silver | note: definitely cursed
+item: seed pouch | qty: 64 | price: 22 silver | note: confiscated
+-- day 30 | stocktake | perpetua on duty --
+item: torch | qty: 16 | price: 57 gold | note: definitely cursed
+item: small mirror | qty: 2 | price: 57 copper | note: returned damp
+item: bandage | qty: 64 | price: 6 silver | note: for the boss fight
+item: ink (black) | qty: 4 | price: 73 silver | note: still sharp-ish
+item: lens | qty: 1 | price: 57 copper | note: seed 42
+item: hardtack | qty: 24 | price: 60 copper | note: priced by weight
+item: chalk | qty: 4 | price: 43 copper | note: reserved
+item: glass vial | qty: 6 | price: 71 silver | note: needs a label
+item: ink (red) | qty: 10 | price: 22 silver | note: seed 42
+item: spare boot | qty: 5 | price: 37 copper | note: still sharp-ish
+item: whetstone | qty: 12 | price: 16 silver | note: seed 42
+item: wax seal | qty: 64 | price: 58 silver | note: needs a label
+item: rope (128 knots) | qty: 5 | price: 7 gold | note: counted twice
+item: quill | qty: 24 | price: 18 silver | note: found on floor 3
+item: brass gear | qty: 1 | price: 76 silver | note: needs a label
+item: small mirror | qty: 10 | price: 45 copper | note: reserved
+item: lamp oil | qty: 1 | price: 72 gold | note: do not lend to Pell
+item: tin cup | qty: 6 | price: 58 copper | note: needs a label
+item: lamp oil | qty: 2 | price: 50 gold | note: needs a label
+item: candle | qty: 32 | price: 60 silver | note: counted twice
+item: flint | qty: 32 | price: 79 silver | note: seed 42
+item: chalk | qty: 3 | price: 45 silver | note: returned damp
+item: lens | qty: 5 | price: 59 copper | note: counted twice
+item: quill | qty: 32 | price: 7 copper | note: confiscated
+item: rusty dagger | qty: 8 | price: 51 silver | note: promised to nobody
+item: glass vial | qty: 10 | price: 95 copper | note: probably fine
+item: hardtack | qty: 10 | price: 23 silver | note: found on floor 3
+item: ledger paper | qty: 64 | price: 14 copper | note: definitely cursed
+item: ledger paper | qty: 128 | price: 87 gold | note: for the boss fight
+item: seed pouch | qty: 12 | price: 72 silver | note: for the boss fight
+item: brass gear | qty: 24 | price: 69 copper | note: buyer regretted
+item: small mirror | qty: 6 | price: 7 copper | note: reserved
+item: rusty dagger | qty: 12 | price: 54 copper | note: confiscated
+item: knotted cord | qty: 32 | price: 27 copper | note: buyer regretted
+item: small mirror | qty: 24 | price: 86 copper | note: still sharp-ish
+item: knotted cord | qty: 16 | price: 78 silver | note: buyer regretted
+item: brass gear | qty: 12 | price: 50 gold | note: ask Ilva
+item: rope (128 knots) | qty: 1 | price: 45 silver | note: one missing
+item: candle | qty: 4 | price: 97 copper | note: burns blue
+item: brass gear | qty: 8 | price: 27 copper | note: found on floor 3
+item: hardtack | qty: 4 | price: 19 silver | note: probably fine
+item: tin cup | qty: 32 | price: 18 copper | note: reserved
+item: chalk | qty: 12 | price: 77 copper | note: confiscated
+item: glass vial | qty: 6 | price: 31 silver | note: probably fine
+item: ledger paper | qty: 2 | price: 18 silver | note: probably fine
+item: glass vial | qty: 5 | price: 47 copper | note: priced by weight
+item: bell clapper | qty: 16 | price: 9 silver | note: still sharp-ish
+item: torch | qty: 5 | price: 93 copper | note: still sharp-ish
+item: map fragment | qty: 10 | price: 6 silver | note: returned damp
+item: tin cup | qty: 2 | price: 99 copper | note: burns blue
+item: seed pouch | qty: 64 | price: 92 silver | note: promised to nobody
+item: bandage | qty: 3 | price: 56 gold | note: confiscated
+item: whetstone | qty: 24 | price: 53 copper | note: definitely cursed
+item: chalk | qty: 5 | price: 9 copper | note: buyer regretted
+-- day 31 | stocktake | maren on duty --
+item: hardtack | qty: 64 | price: 73 copper | note: found on floor 3
+item: whetstone | qty: 1 | price: 6 copper | note: leaks
+item: small mirror | qty: 6 | price: 89 gold | note: confiscated
+item: flint | qty: 12 | price: 75 copper | note: seed 42
+item: lamp oil | qty: 16 | price: 75 copper | note: counted twice
+item: lens | qty: 6 | price: 82 copper | note: leaks
+item: chalk | qty: 1 | price: 47 copper | note: ask Ilva
+-- day 32 | stocktake | ludo on duty --
+-- day 33 | stocktake | brannoc on duty --
+item: ink (black) | qty: 32 | price: 12 silver | note: reserved
+item: tin cup | qty: 3 | price: 69 gold | note: burns blue
+item: ink (red) | qty: 32 | price: 31 silver | note: promised to nobody
+item: hardtack | qty: 12 | price: 57 copper | note: returned damp
+item: hardtack | qty: 16 | price: 14 copper | note: counted twice
+item: glass vial | qty: 5 | price: 15 gold | note: probably fine
+item: rope (128 knots) | qty: 32 | price: 31 copper | note: promised to nobody
+item: salt | qty: 32 | price: 72 silver | note: smells wrong
+item: copper wire | qty: 1 | price: 36 silver | note: needs a label
+item: quill | qty: 12 | price: 62 silver | note: smells wrong
+item: glass vial | qty: 4 | price: 96 silver | note: needs a label
+item: ink (red) | qty: 4 | price: 42 gold | note: burns blue
+item: ledger paper | qty: 32 | price: 88 silver | note: burns blue
+item: rusty dagger | qty: 6 | price: 40 copper | note: one missing
+item: map fragment | qty: 2 | price: 47 copper | note: definitely cursed
+item: ink (red) | qty: 3 | price: 14 copper | note: needs a label
+item: flint | qty: 64 | price: 61 silver | note: for the boss fight
+item: rusty dagger | qty: 3 | price: 92 silver | note: returned damp
+item: salt | qty: 2 | price: 60 copper | note: priced by weight
+item: bell clapper | qty: 1 | price: 73 copper | note: counted twice
+item: copper wire | qty: 64 | price: 12 silver | note: seed 42
+item: iron key | qty: 1 | price: 25 copper | note: reserved
+item: ledger paper | qty: 1 | price: 16 silver | note: ask Ilva
+item: ledger paper | qty: 5 | price: 21 copper | note: buyer regretted
+item: bandage | qty: 2 | price: 65 gold | note: probably fine
+item: seed pouch | qty: 3 | price: 37 copper | note: do not lend to Pell
+item: rusty dagger | qty: 8 | price: 8 silver | note: reserved
+item: whetstone | qty: 128 | price: 55 copper | note: found on floor 3
+item: wax seal | qty: 1 | price: 82 silver | note: leaks
+item: chalk | qty: 16 | price: 66 copper | note: buyer regretted
+item: rope (128 knots) | qty: 1 | price: 47 silver | note: for the boss fight
+item: chalk | qty: 6 | price: 33 gold | note: seed 42
+item: flint | qty: 128 | price: 88 silver | note: still sharp-ish
+item: salt | qty: 8 | price: 90 copper | note: one missing
+item: lamp oil | qty: 24 | price: 85 silver | note: needs a label
+item: torch | qty: 1 | price: 17 silver | note: counted twice
+item: ink (red) | qty: 32 | price: 26 copper | note: counted twice
+item: hardtack | qty: 128 | price: 74 copper | note: promised to nobody
+item: ledger paper | qty: 32 | price: 52 silver | note: still sharp-ish
+item: chalk | qty: 3 | price: 55 copper | note: ask Ilva
+item: hardtack | qty: 32 | price: 82 copper | note: reserved
+item: ink (red) | qty: 32 | price: 34 copper | note: for the boss fight
+item: glass vial | qty: 3 | price: 72 silver | note: priced by weight
+item: spare boot | qty: 1 | price: 72 gold | note: counted twice
+item: small mirror | qty: 64 | price: 34 copper | note: ask Ilva
+item: glass vial | qty: 2 | price: 53 silver | note: still sharp-ish
+item: ledger paper | qty: 3 | price: 99 silver | note: promised to nobody
+item: rusty dagger | qty: 6 | price: 66 silver | note: smells wrong
+item: spare boot | qty: 2 | price: 32 copper | note: needs a label
+item: small mirror | qty: 1 | price: 45 copper | note: do not lend to Pell
+item: salt | qty: 1 | price: 75 copper | note: ask Ilva
+item: bandage | qty: 128 | price: 80 copper | note: found on floor 3
+item: torch | qty: 16 | price: 68 copper | note: reserved
+item: small mirror | qty: 6 | price: 82 gold | note: returned damp
+item: candle | qty: 10 | price: 69 gold | note: ask Ilva
+item: tin cup | qty: 128 | price: 33 gold | note: buyer regretted
+item: rope (128 knots) | qty: 6 | price: 21 copper | note: burns blue
+item: knotted cord | qty: 4 | price: 71 silver | note: do not lend to Pell
+item: lamp oil | qty: 5 | price: 21 silver | note: returned damp
+item: goblin biscuit | qty: 2 | price: 90 copper | note: buyer regretted
+item: knotted cord | qty: 10 | price: 66 gold | note: needs a label
+item: wax seal | qty: 2 | price: 10 copper | note: counted twice
+item: copper wire | qty: 64 | price: 2 copper | note: needs a label
+item: rusty dagger | qty: 2 | price: 25 copper | note: ask Ilva
+item: map fragment | qty: 10 | price: 40 copper | note: priced by weight
+item: lens | qty: 1 | price: 2 silver | note: smells wrong
+item: spare boot | qty: 12 | price: 58 copper | note: counted twice
+item: rusty dagger | qty: 2 | price: 25 copper | note: one missing
+item: flint | qty: 1 | price: 57 copper | note: definitely cursed
+item: wax seal | qty: 128 | price: 23 silver | note: still sharp-ish
+item: tin cup | qty: 2 | price: 3 copper | note: for the boss fight
+item: ledger paper | qty: 2 | price: 67 copper | note: returned damp
+item: map fragment | qty: 8 | price: 46 silver | note: burns blue
+item: rope (128 knots) | qty: 64 | price: 36 copper | note: promised to nobody
+item: brass gear | qty: 3 | price: 80 silver | note: still sharp-ish
+item: torch | qty: 12 | price: 19 copper | note: burns blue
+-- day 34 | stocktake | ysolde on duty --
+item: goblin biscuit | qty: 128 | price: 65 copper | note: smells wrong
+item: bell clapper | qty: 32 | price: 70 silver | note: priced by weight
+item: salt | qty: 5 | price: 25 gold | note: burns blue
+item: map fragment | qty: 1 | price: 73 copper | note: definitely cursed
+item: rope (128 knots) | qty: 4 | price: 30 copper | note: promised to nobody
+item: rusty dagger | qty: 24 | price: 37 copper | note: counted twice
+item: seed pouch | qty: 1 | price: 91 silver | note: promised to nobody
+item: quill | qty: 5 | price: 73 gold | note: counted twice
+item: rope (128 knots) | qty: 24 | price: 29 copper | note: for the boss fight
+item: spare boot | qty: 128 | price: 66 copper | note: leaks
+item: map fragment | qty: 6 | price: 57 silver | note: confiscated
+item: goblin biscuit | qty: 6 | price: 49 silver | note: counted twice
+item: rusty dagger | qty: 16 | price: 10 silver | note: probably fine
+item: lens | qty: 64 | price: 15 gold | note: buyer regretted
+item: spare boot | qty: 2 | price: 43 copper | note: priced by weight
+item: seed pouch | qty: 12 | price: 17 copper | note: leaks
+item: torch | qty: 64 | price: 94 silver | note: burns blue
+-- day 35 | stocktake | ruel on duty --
+item: rusty dagger | qty: 10 | price: 34 silver | note: do not lend to Pell
+item: salt | qty: 4 | price: 29 gold | note: do not lend to Pell
+item: lens | qty: 16 | price: 52 silver | note: promised to nobody
+item: ink (black) | qty: 2 | price: 73 silver | note: do not lend to Pell
+item: rusty dagger | qty: 1 | price: 8 copper | note: smells wrong
+item: ink (black) | qty: 4 | price: 69 silver | note: for the boss fight
+-- day 36 | stocktake | yusuf on duty --
+item: flint | qty: 6 | price: 45 gold | note: smells wrong
+-- day 37 | stocktake | ruel on duty --
+item: torch | qty: 3 | price: 23 copper | note: burns blue
+-- day 38 | stocktake | wren on duty --
+-- day 39 | stocktake | zamira on duty --
+item: wax seal | qty: 4 | price: 5 silver | note: buyer regretted
+item: ink (red) | qty: 8 | price: 87 silver | note: returned damp
+item: bell clapper | qty: 24 | price: 53 silver | note: leaks
+item: rusty dagger | qty: 12 | price: 73 copper | note: promised to nobody
+item: goblin biscuit | qty: 32 | price: 21 silver | note: found on floor 3
+item: whetstone | qty: 4 | price: 35 gold | note: promised to nobody
+item: quill | qty: 16 | price: 91 silver | note: definitely cursed
+item: ledger paper | qty: 6 | price: 46 silver | note: seed 42
+item: rope (128 knots) | qty: 1 | price: 85 copper | note: burns blue
+item: rusty dagger | qty: 8 | price: 63 copper | note: promised to nobody
+item: bell clapper | qty: 3 | price: 15 copper | note: found on floor 3
+item: flint | qty: 64 | price: 71 gold | note: needs a label
+item: lamp oil | qty: 1 | price: 35 silver | note: promised to nobody
+item: copper wire | qty: 5 | price: 46 silver | note: counted twice
+item: lens | qty: 12 | price: 49 silver | note: ask Ilva
+item: bandage | qty: 64 | price: 72 silver | note: leaks
+item: map fragment | qty: 32 | price: 76 copper | note: one missing
+item: bell clapper | qty: 12 | price: 46 copper | note: probably fine
+item: goblin biscuit | qty: 12 | price: 74 copper | note: one missing
+item: brass gear | qty: 2 | price: 69 silver | note: buyer regretted
+item: brass gear | qty: 4 | price: 99 copper | note: found on floor 3
+item: bell clapper | qty: 3 | price: 83 silver | note: promised to nobody
+item: rope (128 knots) | qty: 1 | price: 69 copper | note: confiscated
+item: quill | qty: 5 | price: 51 silver | note: probably fine
+item: goblin biscuit | qty: 12 | price: 62 copper | note: do not lend to Pell
+item: tin cup | qty: 1 | price: 18 silver | note: promised to nobody
+item: rope (128 knots) | qty: 2 | price: 2 copper | note: found on floor 3
+item: glass vial | qty: 64 | price: 52 silver | note: seed 42
+item: bell clapper | qty: 8 | price: 72 copper | note: burns blue
+item: flint | qty: 2 | price: 94 copper | note: one missing
+item: glass vial | qty: 1 | price: 81 silver | note: smells wrong
+item: copper wire | qty: 1 | price: 89 silver | note: for the boss fight
+item: knotted cord | qty: 12 | price: 94 silver | note: smells wrong
+item: glass vial | qty: 64 | price: 88 gold | note: counted twice
+item: goblin biscuit | qty: 2 | price: 73 copper | note: still sharp-ish
+item: bandage | qty: 32 | price: 98 copper | note: burns blue
+item: ink (red) | qty: 3 | price: 37 gold | note: reserved
+item: ink (black) | qty: 4 | price: 73 gold | note: ask Ilva
+item: spare boot | qty: 8 | price: 95 copper | note: burns blue
+item: candle | qty: 32 | price: 19 copper | note: needs a label
+item: goblin biscuit | qty: 3 | price: 65 gold | note: do not lend to Pell
+item: bell clapper | qty: 24 | price: 34 silver | note: smells wrong
+item: wax seal | qty: 10 | price: 21 gold | note: priced by weight
+item: rusty dagger | qty: 2 | price: 33 copper | note: counted twice
+item: torch | qty: 3 | price: 60 copper | note: smells wrong
+item: flint | qty: 2 | price: 13 copper | note: probably fine
+item: whetstone | qty: 1 | price: 33 copper | note: confiscated
+item: copper wire | qty: 24 | price: 79 copper | note: found on floor 3
+item: bandage | qty: 128 | price: 22 silver | note: burns blue
+item: ink (red) | qty: 4 | price: 42 copper | note: smells wrong
+item: quill | qty: 10 | price: 13 copper | note: still sharp-ish
+item: map fragment | qty: 1 | price: 95 silver | note: ask Ilva
+item: bell clapper | qty: 8 | price: 59 copper | note: buyer regretted
+item: ink (red) | qty: 3 | price: 66 gold | note: still sharp-ish
+item: whetstone | qty: 64 | price: 13 gold | note: one missing
+item: small mirror | qty: 16 | price: 33 copper | note: for the boss fight
+item: torch | qty: 3 | price: 72 silver | note: still sharp-ish
+item: lens | qty: 128 | price: 46 copper | note: leaks
+item: quill | qty: 32 | price: 80 copper | note: priced by weight
+-- day 40 | stocktake | dov on duty --
+item: brass gear | qty: 12 | price: 26 copper | note: buyer regretted
+item: ink (black) | qty: 8 | price: 1 silver | note: one missing
+item: ink (red) | qty: 128 | price: 12 copper | note: counted twice
+item: chalk | qty: 32 | price: 52 copper | note: needs a label
+item: brass gear | qty: 5 | price: 21 copper | note: confiscated
+item: flint | qty: 12 | price: 45 copper | note: probably fine
+item: map fragment | qty: 1 | price: 29 silver | note: reserved
+item: wax seal | qty: 12 | price: 3 copper | note: returned damp
+item: whetstone | qty: 6 | price: 10 gold | note: confiscated
+item: wax seal | qty: 16 | price: 97 copper | note: counted twice
+item: seed pouch | qty: 24 | price: 44 copper | note: leaks
+item: small mirror | qty: 8 | price: 52 silver | note: priced by weight
+item: torch | qty: 2 | price: 56 silver | note: promised to nobody
+item: rusty dagger | qty: 10 | price: 92 copper | note: reserved
+item: copper wire | qty: 1 | price: 22 copper | note: definitely cursed
+item: bell clapper | qty: 10 | price: 55 silver | note: still sharp-ish
+item: seed pouch | qty: 3 | price: 94 copper | note: promised to nobody
+item: hardtack | qty: 24 | price: 64 silver | note: found on floor 3
+item: lens | qty: 128 | price: 28 copper | note: definitely cursed
+item: knotted cord | qty: 10 | price: 38 copper | note: priced by weight
+item: chalk | qty: 10 | price: 61 silver | note: for the boss fight
+item: lamp oil | qty: 5 | price: 36 copper | note: seed 42
+item: salt | qty: 10 | price: 64 copper | note: found on floor 3
+item: map fragment | qty: 12 | price: 20 silver | note: needs a label
+item: iron key | qty: 128 | price: 93 silver | note: smells wrong
+item: lamp oil | qty: 5 | price: 41 silver | note: ask Ilva
+-- day 41 | stocktake | tadeo on duty --
+item: rusty dagger | qty: 12 | price: 17 copper | note: buyer regretted
+item: torch | qty: 32 | price: 92 silver | note: do not lend to Pell
+-- day 42 | stocktake | ilva on duty --
+item: goblin biscuit | qty: 1 | price: 22 gold | note: priced by weight
+item: salt | qty: 5 | price: 55 gold | note: found on floor 3

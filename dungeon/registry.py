@@ -167,8 +167,8 @@ def load_floor(floor_dir: Path) -> Floor:
     try:
         rooms = tuple(_parse_room(r, floor_dir) for r in raw.get("rooms", []))
         loot = tuple(
-            Loot(name=l["name"], file=l["file"], blurb=l.get("blurb", "").strip())
-            for l in raw.get("loot", [])
+            Loot(name=item["name"], file=item["file"], blurb=item.get("blurb", "").strip())
+            for item in raw.get("loot", [])
         )
         floor = Floor(
             id=raw["id"],
