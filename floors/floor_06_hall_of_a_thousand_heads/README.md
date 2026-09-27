@@ -10,10 +10,10 @@
    │      GAZE       │     │     CAUSALITY    │     │        HEADS         │
    └─────────────────┘     └──────────────────┘     └──────────┬───────────┘
                                                                │
-   ┌─────────────────┐     ┌──────────────────┐                │
-   │ ☠ THE ORACLE'S  │─────│  6.4 THE PADDING │────────────────┘
-   │      DAIS       │     │       VEIL       │
-   └────────┬────────┘     └──────────────────┘
+   ┌─────────────────┐     ┌──────────────────┐     ┌──────────┴───────────┐
+   │ ☠ THE ORACLE'S  │─────│  6.5 THE ROTARY  │─────│  6.4 THE PADDING     │
+   │      DAIS       │     │     GALLERY      │     │        VEIL          │
+   └────────┬────────┘     └──────────────────┘     └──────────────────────┘
             ┆  ◇ a slit behind the dais: the Tiled Gaze
             ▼  stairs down to Floor 7
 ```
@@ -22,7 +22,7 @@ The stairs open onto a hall so long its far end is lost in torchlight. Along bot
 
 That is attention, and it is the operation the rest of the dungeon is built from. A transformer is a stack of these halls. Every token in a sequence asks every other token "how relevant are you to me?", gets a number back, and takes a weighted average of what the relevant tokens carry. It is two matrix multiplications with a softmax between them, and you could write it in five lines. The reason it gets a whole floor is that the five lines have three places to be silently wrong: the softmax over the wrong axis, a missing `sqrt(d)`, and, worst of all, a mask that lets a head hear the future. That last one does not crash. It does not even make the loss worse. It makes the loss *wonderful*, and then the model you trained cannot generate a sentence. The Oracle at the end of this hall is such a model, and your job is to catch it the only way it can be caught: empirically.
 
-**You will learn:** scaled dot-product attention · the softmax over keys and why the scores are divided by `sqrt(d_k)` · causal masks applied before the softmax with `-inf` · key-padding masks and how to combine them · fully-masked rows and NaN · multi-head attention with split/merge heads and an output projection, interchangeable with `nn.MultiheadAttention` · detecting information leakage by perturbation · online-softmax (tiled) attention.
+**You will learn:** scaled dot-product attention · the softmax over keys and why the scores are divided by `sqrt(d_k)` · causal masks applied before the softmax with `-inf` · key-padding masks and how to combine them · fully-masked rows and NaN · multi-head attention with split/merge heads and an output projection, interchangeable with `nn.MultiheadAttention` · detecting information leakage by perturbation · rotary position embeddings (RoPE) and why a rotation gives relative position through a dot product · grouped-query attention, multi-query attention and the KV cache they shrink · online-softmax (tiled) attention.
 
 **You need:** PyTorch (CPU is plenty), `nn.Module` and `nn.Linear` from Floor 4, and the shape discipline of Floor 0. Every room here is shapes.
 
@@ -133,6 +133,61 @@ Parameter count: `qkv` has `3·d_model² + 3·d_model`, `proj` has `d_model² + 
 
 Cost: time `O(T² · d_model)` per layer, memory `O(H · T²)` for the weights. The `T²` is why long contexts are expensive, and why the secret room exists.
 
+### The rotary gallery: positions as rotations
+
+Everything above is blind to order. Permute the tokens of `x` and multi-head attention permutes its outputs the same way and changes nothing else; Room 6.5 has you demonstrate it. "the cat sat" and "sat the cat" are the same bag of vectors. A transformer needs positions from somewhere. GPT-2 adds a learned vector per position to the token embedding before the first layer (Floor 7's `wpe`: one row per position, none for position `block_size`). Nearly every model since uses **rotary position embeddings** (RoPE, Su et al. 2021): no table, no parameters, and the position goes into `q` and `k` inside every attention layer, as a rotation.
+
+Take one head's query at position `m`, `head_dim` numbers. Group them into `head_dim / 2` consecutive pairs `(x_0, x_1), (x_2, x_3), ...`; each pair is a point in the plane. Rotate pair `i` by the angle `m · θ_i`:
+
+```
+θ_i = base^(-2i / head_dim)        i = 0 .. head_dim/2 - 1,  base = 10000
+x_{2i}   <- x_{2i} cos(m θ_i) - x_{2i+1} sin(m θ_i)
+x_{2i+1} <- x_{2i} sin(m θ_i) + x_{2i+1} cos(m θ_i)
+```
+
+Do the same to every key with its own position. Leave `v` alone. Then compute the scores as usual.
+
+The ladder of frequencies is the one Floor 5's sinusoidal embedding uses: pair 0 turns one radian per position, pair `i` turns `θ_i` radians, the last pair about `1/base`. For `head_dim = 64` and `base = 10000` the slowest pair needs about 47,000 positions for one full turn. Fast pairs resolve neighbours; slow pairs tell position 10 from position 1000.
+
+**Why a rotation gives *relative* position.** Write `R(a)` for the 2x2 rotation by angle `a`. Two facts about rotations in the plane: they compose by adding angles, `R(a) R(b) = R(a + b)`, and the transpose undoes them, `R(a)^T = R(-a)`. So for one pair, with `q` at position `m` and `k` at position `n`:
+
+```
+(R(m θ) q) · (R(n θ) k) = q^T R(m θ)^T R(n θ) k = q^T R((n - m) θ) k
+```
+
+The score depends on `q`, on `k`, and on the *difference* `n - m`. Not on `m`, not on `n`. Sum over the pairs (each with its own `θ_i`) and the whole dot product has the property; the softmax and the weighted sum of the unrotated `v` inherit it. Three consequences, all checked by the trial:
+
+1. Shift every position by the same offset and nothing changes, to float precision. This is what makes decoding against a KV cache (Floor 12) correct: cached keys keep the absolute positions they were written with, the new query gets its own, and only the differences reach the softmax.
+2. A rotation is orthogonal, so `|q|` and `|k|` are unchanged and the `sqrt(d_k)` argument still holds. Position 0 is the identity.
+3. Position-free attention is permutation-equivariant; RoPE attention is not. Shuffle the input tokens and the outputs no longer merely shuffle.
+
+**Two layouts.** Rotating consecutive pairs `(x_{2i}, x_{2i+1})` is the *interleaved* layout of the paper and of this room. Llama, and most Hugging Face code, pairs `x_i` with `x_{i + head_dim/2}` instead and writes the rotation as `x · cos + rotate_half(x) · sin`, with `rotate_half(x) = cat(-x[hd/2:], x[:hd/2])`. It is the same operation after a fixed permutation of the head dimension, and since the `q` and `k` projections are learned, the two are equivalent models. But weights trained under one layout produce garbage under the other; the Hugging Face Llama conversion script permutes `q_proj` and `k_proj` for exactly this reason. Know which one you are holding.
+
+**Extrapolation, and its limit.** A learned table has no row for position `block_size`. RoPE has an angle for every integer, and since only differences matter, a model trained at `T = 4096` *runs* at 8192 without error. It degrades, though: at distances it never saw, the slow pairs reach relative angles the model never learned to read, and attention to far tokens turns to noise. The long-context recipes (position interpolation, NTK-aware scaling, YaRN; Llama 3 simply raised `base` to 500,000) all rescale `θ_i` so that longer distances map onto angles the model has seen, then fine-tune briefly. No code for that here. The point to keep: `base` and `θ_i` are knobs. A larger base turns every pair except the first more slowly, so far positions stay distinguishable for longer. One practical note: `m · θ_i` with `m` in the tens of thousands wants the angle computed in float32 or better, even when the activations are bf16.
+
+### Fewer keys than queries: grouped-query attention
+
+Room 6.3's layer has `H` heads and each carves its own `k` and `v`. When a model generates, it caches every layer's `k` and `v` for every past token so it never recomputes them (Floor 12 builds that cache). Producing one new token then means, in every layer, reading the *entire* cache back from memory to score a single query against it. Arithmetic per byte read is tiny. Decoding is bound by **memory bandwidth**, and the bytes are:
+
+```
+kv_cache_bytes = 2 · n_layer · T · n_kv_heads · head_dim · bytes_per        (2: a key and a value)
+```
+
+For a 7B-class model with 32 layers, 32 heads of 128, 4096 tokens, bf16: `2 · 32 · 4096 · 32 · 128 · 2 = 2 GiB`, per sequence. Serve 40 sequences at once and the cache is 80 GB, before a single weight is loaded.
+
+**Grouped-query attention** (Ainslie et al. 2023) keeps `n_heads` query heads and gives them only `n_kv_heads` key/value heads; each group of `n_heads / n_kv_heads` query heads shares one `k` and one `v`:
+
+```
+q = q_proj(x)   Linear(d_model, d_model)                 (B, H, T, hd)      after the head split
+k = k_proj(x)   Linear(d_model, n_kv_heads · hd)         (B, n_kv, T, hd)
+v = v_proj(x)   Linear(d_model, n_kv_heads · hd)         (B, n_kv, T, hd)
+k, v = k.repeat_interleave(groups, dim=1), ...           (B, H, T, hd)      head h reads kv head h // groups
+```
+
+then the ordinary attention from Room 6.1 and the output projection. `n_kv_heads = n_heads` is plain multi-head attention; `n_kv_heads = 1` is **multi-query attention** (Shazeer 2019), the extreme. The cache shrinks by `n_heads / n_kv_heads`, and so does the memory traffic per decoded token. Llama 2 70B uses 64 heads and 8 kv heads (8x); Llama 3 8B and Mistral 7B use 32 and 8 (4x). The 1 GiB per 8k-token sequence that a Llama-3-8B-shaped model caches would be 4 GiB with full MHA. The quality cost is small: eight kv heads land within noise of full MHA on the usual benchmarks, one kv head costs measurably more, and eight is the compromise the field settled on. Parameters drop too (`2d² + 2d + 2 · n_kv · hd · (d + 1)` instead of `4d² + 4d`), but that is a side effect; the cache is the reason.
+
+`repeat_interleave`, not `repeat`: query heads `0..groups-1` share kv head 0, the next `groups` share kv head 1. That is the convention of `torch.nn.functional.scaled_dot_product_attention(enable_gqa=True)` and of every released checkpoint; `repeat` gives `0, 1, 0, 1`, a model that loads without error and speaks nonsense. When RoPE is in play, rotate `k` *before* the repeat: the rotation touches only the last axis, so it costs `n_kv_heads` heads instead of `n_heads`. In production the repeat never happens at all; the kernel indexes the shared head directly.
+
 ### The tiled gaze (secret room)
 
 Attention can be computed **without ever building the `(Tq, Tk)` matrix**. Walk the keys in blocks and keep, per query, a running max `m`, a running sum `l` of `exp(score - m)`, and a running accumulator `acc` of `exp(score - m) · v`. When a new block raises the max, rescale the old state by `exp(m_old - m_new)`; since `exp(s - m_old) · exp(m_old - m_new) = exp(s - m_new)`, the result is exact. The largest live tensor is `(B, Tq, block)`. This is the forward pass of FlashAttention, minus the hardware.
@@ -177,6 +232,14 @@ Scrolls of unequal length on one rack. `key_padding_mask(lengths, T)`, `combine_
 dungeon trial 6 room_4
 ```
 
+### 6.5 The Rotary Gallery — `rooms/room_5_the_rotary_gallery.py`
+
+Heads on brass rings, each turned a little further than the last. `rope_frequencies(head_dim, base)`, `rope_angles(positions, head_dim, base)` and `apply_rope(x, positions, base)` on interleaved pairs; then `RoPEAttention`, Room 6.3's module with the rotation on `q` and `k`; then `GroupedQueryAttention(d_model, n_heads, n_kv_heads)` with `expand_kv` and `kv_cache_bytes`. The trial checks that the rotation preserves norms, does nothing at position 0, agrees with complex multiplication (`view_as_complex`, times `exp(iθ)`), and that scores depend only on the distance between positions (shift everything by 7: nothing moves). The module must leak nothing, match a reference to `1e-5`, ignore where the sequence starts, and, unlike position-free attention, fail to be permutation-equivariant. GQA with `n_kv_heads == n_heads` must be Room 6.3, with one kv head multi-query attention, and in between agree with torch's `enable_gqa`. Then **the Prophecy of the Gallery**: which pair turns fastest, what a shift does to the scores, what a larger base does to far positions, and the cache saving when 32 heads share 8.
+
+```
+dungeon trial 6 room_5
+```
+
 ---
 
 ## Boss: The Oracle Who Peeks
@@ -216,9 +279,9 @@ dungeon trial 6 --secret
 
 ## Loot
 
-Clear the four rooms and unmask the Oracle to unlock:
+Clear the five rooms and unmask the Oracle to unlock:
 
-- **Codex of Attention Shapes** — `loot/attention_shapes_cheat_sheet.md`. Every shape through multi-head attention, the mask conventions (including torch's inverted one), the `sqrt(d_k)` argument with measured numbers, the exact weight mapping to `nn.MultiheadAttention`, the leakage-test recipe, the online-softmax recurrence and the eight bugs everyone hits.
+- **Codex of Attention Shapes** — `loot/attention_shapes_cheat_sheet.md`. Every shape through multi-head attention, the mask conventions (including torch's inverted one), the `sqrt(d_k)` argument with measured numbers, the exact weight mapping to `nn.MultiheadAttention`, the leakage-test recipe, RoPE and GQA shapes with the KV-cache arithmetic, the online-softmax recurrence and the eleven bugs everyone hits.
 
 ## Stuck?
 

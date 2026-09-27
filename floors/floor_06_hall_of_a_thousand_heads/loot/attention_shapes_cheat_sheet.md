@@ -1,6 +1,6 @@
 # Codex of Attention Shapes
 
-*Loot from Floor 6. Every tensor through multi-head attention, every mask convention, and the two tests that catch the bugs the loss curve hides.*
+*Loot from Floor 6. Every tensor through multi-head attention, every mask convention, the rotary and grouped-query shapes that every current model uses, and the two tests that catch the bugs the loss curve hides.*
 
 ## The equations
 
@@ -106,6 +106,38 @@ for each future position j (one at a time):
 - Padding test: rewrite only the padded positions; real positions must not move.
 - A leak is invisible in the training loss (the loss gets *better*). This test is the only way to see it.
 
+## Rotary position embeddings (RoPE)
+
+```
+theta_i   = base ** (-2i / hd)                          (hd/2,)        theta_0 = 1, theta_last ~ 1/base
+angles    = positions[:, None] * theta[None, :]         (T, hd/2)      angles[m, i] = m * theta_i
+even, odd = x[..., 0::2], x[..., 1::2]                  (B, H, T, hd/2) each
+x_rot     = stack((even*cos - odd*sin, even*sin + odd*cos), -1).flatten(-2)      (B, H, T, hd)
+```
+
+- Applied to `q` and `k` **after** the head split (the pairs live inside one head's `hd`), never to `v`. Zero parameters.
+- `(R(m t) q) · (R(n t) k) = q^T R((n - m) t) k`: every score depends only on `n - m`. Shift all positions by the same offset and the layer's output does not move (why KV-cache decoding is correct).
+- Orthogonal: norms preserved, the `sqrt(d_k)` argument survives. Position 0 is the identity.
+- **Interleaved** pairs `(x[2i], x[2i+1])` (the paper, this floor) vs **rotate_half** pairing `x[i]` with `x[i + hd/2]` (Llama, HF: `x*cos + cat(-x2, x1)*sin`). Same maths, permuted columns; permute `q_proj`/`k_proj` when crossing over.
+- Slowest pair's period is `2π / theta_last`: `hd = 64`, `base = 1e4` gives ~47,000 positions. A larger base (Llama 3: 500,000) turns every pair but the first more slowly, so far positions stay distinguishable longer. Beyond the training length quality degrades; NTK-aware scaling / YaRN rescale `theta_i` and fine-tune.
+- Compute `angles`, `cos`, `sin` in float32 even for bf16 activations; `m * theta_i` at `m ~ 1e5` loses digits otherwise.
+
+## Grouped-query attention and the KV cache
+
+| Tensor | MHA | GQA, `g = H / n_kv` | MQA |
+|---|---|---|---|
+| `q_proj(x)` after split | `(B, H, T, hd)` | `(B, H, T, hd)` | `(B, H, T, hd)` |
+| `k_proj(x)`, `v_proj(x)` after split | `(B, H, T, hd)` | `(B, n_kv, T, hd)` | `(B, 1, T, hd)` |
+| after `repeat_interleave(g, dim=1)` | (not needed) | `(B, H, T, hd)` | `(B, H, T, hd)` |
+| `k_proj.weight` | `(d, d)` | `(n_kv·hd, d)` | `(hd, d)` |
+| parameters (with biases) | `4d² + 4d` | `2d² + 2d + 2·n_kv·hd·(d + 1)` | `2d² + 2d + 2·hd·(d + 1)` |
+
+- Query head `h` reads kv head `h // g`: `repeat_interleave`, **not** `repeat` (which gives `0, 1, 0, 1`). Matches `F.scaled_dot_product_attention(q, k, v, enable_gqa=True)`.
+- `kv_cache_bytes = 2 · n_layer · T · n_kv · hd · bytes_per` per sequence (the 2 is key + value). Saving over MHA: `H / n_kv`.
+- 32 layers, `hd = 128`, 8192 tokens, bf16: 32 kv heads → **4 GiB** per sequence; 8 kv heads → **1 GiB** (Llama 3 8B, Mistral 7B: 32 heads / 8 kv); 1 kv head → 128 MiB. Llama 2 70B: 64 heads / 8 kv, 8x.
+- Decode re-reads the whole cache for every new token, so it is memory-bandwidth bound: a smaller cache means faster steps *and* more concurrent sequences. Eight kv heads cost almost no quality; one costs some.
+- With RoPE, rotate `k` **before** the repeat (`n_kv` heads instead of `H`). Real kernels never materialise the repeat.
+
 ## The online-softmax recurrence (tiled attention)
 
 Per query, walk the keys in blocks and keep `m` (running max), `l` (running sum of `exp`), `acc` (running `exp`-weighted sum of `v`):
@@ -135,3 +167,6 @@ Exact because `exp(s - m_old) * exp(m_old - m_new) == exp(s - m_new)`. The large
 6. Passing a True-means-attend mask to `nn.MultiheadAttention` without `~`.
 7. Padding masked along the queries instead of the keys.
 8. A fully masked row: NaN in one sequence, NaN gradients for the whole batch.
+9. Rotating `v`, or rotating `q` and `k` before the head split. RoPE touches `q` and `k` only, inside each head's `hd`.
+10. Interleaved code loading rotate_half weights (or the reverse): no error, every position wrong.
+11. `repeat` instead of `repeat_interleave` for the shared kv heads: head `h` reads the wrong kv head, torch's `enable_gqa` disagrees.

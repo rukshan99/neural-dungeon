@@ -3,7 +3,7 @@ number = 6
 slug = "hall_of_a_thousand_heads"
 name = "The Hall of a Thousand Heads"
 tagline = "A thousand carved heads line the hall. Each one listens to every voice at once and weighs them. A veil keeps them from hearing what has not yet been said."
-topics = ["scaled dot-product attention", "softmax over keys and the sqrt(d_k) scaling", "causal and padding masks", "multi-head attention", "leakage detection", "online-softmax (tiled) attention"]
+topics = ["scaled dot-product attention", "softmax over keys and the sqrt(d_k) scaling", "causal and padding masks", "multi-head attention", "leakage detection", "rotary position embeddings (RoPE)", "grouped-query attention and the KV cache", "online-softmax (tiled) attention"]
 requires = ["torch"]
 
 map = '''
@@ -14,10 +14,10 @@ map = '''
    │      GAZE       │     │     CAUSALITY    │     │        HEADS         │
    └─────────────────┘     └──────────────────┘     └──────────┬───────────┘
                                                                │
-   ┌─────────────────┐     ┌──────────────────┐                │
-   │ ☠ THE ORACLE'S  │─────│  6.4 THE PADDING │────────────────┘
-   │      DAIS       │     │       VEIL       │
-   └────────┬────────┘     └──────────────────┘
+   ┌─────────────────┐     ┌──────────────────┐     ┌──────────┴───────────┐
+   │ ☠ THE ORACLE'S  │─────│  6.5 THE ROTARY  │─────│  6.4 THE PADDING     │
+   │      DAIS       │     │     GALLERY      │     │        VEIL          │
+   └────────┬────────┘     └──────────────────┘     └──────────────────────┘
             ┆  ◇ a slit behind the dais: the Tiled Gaze
             ▼  stairs down to Floor 7
 '''
@@ -62,6 +62,14 @@ trial = "trials/test_room_4.py"
 blurb = "Scrolls of unequal length share a batch. Veil the blank parchment, combine it with the causal veil, and never produce a NaN."
 
 [[rooms]]
+id = "room_5"
+name = "The Rotary Gallery"
+kind = "room"
+file = "rooms/room_5_the_rotary_gallery.py"
+trial = "trials/test_room_5.py"
+blurb = "Heads on brass rings: rotate q and k by their position so the scores hear only distance (RoPE). Then let four query heads share one key head (GQA) and count the cache it saves."
+
+[[rooms]]
 id = "boss"
 name = "The Oracle Who Peeks"
 kind = "boss"
@@ -80,4 +88,4 @@ blurb = "Attention that never carves the (T, T) matrix: walk the keys in blocks 
 [[loot]]
 name = "Codex of Attention Shapes"
 file = "loot/attention_shapes_cheat_sheet.md"
-blurb = "Every tensor's shape through multi-head attention, the mask conventions (including torch's inverted one), the sqrt(d) argument, the nn.MultiheadAttention weight mapping, the leak-test recipe and the online-softmax recurrence."
+blurb = "Every tensor's shape through multi-head attention, the mask conventions (including torch's inverted one), the sqrt(d) argument, the nn.MultiheadAttention weight mapping, the leak-test recipe, RoPE and GQA shapes with the KV-cache arithmetic, and the online-softmax recurrence."
