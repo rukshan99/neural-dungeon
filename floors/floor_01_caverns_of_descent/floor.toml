@@ -1,0 +1,96 @@
+id = "floor_01"
+number = 1
+slug = "caverns_of_descent"
+name = "The Caverns of Descent"
+tagline = "The gauge on your wrist reads loss. Every corridor slopes down. The trick is knowing how big a step to take."
+topics = ["loss functions and their gradients", "numerical gradient checking", "gradient descent", "learning-rate dynamics", "momentum and Adam", "learning-rate schedules"]
+requires = []
+
+map = '''
+            ▼ stairs from the Threshold
+            │
+   ┌────────┴────────┐     ┌──────────────────┐     ┌──────────────────┐
+   │  1.1 THE ALTAR  │─────│  1.2 THE NUMER-  │─────│  1.3 THE DESCENT │
+   │     OF LOSS     │     │    ICAL ORACLE   │     │   (a long slope) │
+   └─────────────────┘     └──────────────────┘     └────────┬─────────┘
+                                                             │
+   ┌─────────────────┐     ┌──────────────────┐     ┌────────┴─────────┐
+   │ ☠ THE LICH'S    │─────│  1.5 THE MOMENTUM│─────│  1.4 THE PROPHECY│
+   │    SANCTUM      │     │      CHAMBER     │     │    OF CURVES     │
+   └────────┬────────┘     └──────────────────┘     └──────────────────┘
+            ┆  ◇ a whisper from a side ledge: the Whispering Saddle
+            ▼  stairs down to Floor 2
+'''
+
+[lines]
+room_cleared = "The depth gauge ticks lower. Somewhere below, the dripping steadies into a rhythm."
+room_failed = "The gauge does not move. You are standing on a ledge, not the floor."
+boss_intro = "A figure in a robe of decaying learning rates rises from the narrowest valley. 'Step boldly,' it whispers, 'and I will hurl you up the far wall. Step timidly, and you will grow old on my slope.'"
+boss_defeated = "The Lich's rate decays to nothing. It was never afraid of your step size. It was afraid you would learn to change it."
+floor_cleared = "The Caverns are behind you. Below, something is whispering your gradients back along a very long chain."
+
+[[rooms]]
+id = "room_1"
+name = "The Altar of Loss"
+kind = "room"
+file = "rooms/room_1_altar_of_loss.py"
+trial = "trials/test_room_1.py"
+blurb = "Carve the five losses into the altar: MSE, MAE, binary cross-entropy, its logit form, softmax cross-entropy. Each with its gradient. Huge logits must not summon NaN."
+
+[[rooms]]
+id = "room_2"
+name = "The Numerical Oracle"
+kind = "room"
+file = "rooms/room_2_numerical_oracle.py"
+trial = "trials/test_room_2.py"
+blurb = "Build the oracle that checks any gradient by nudging every element. Then prophesy why central differences beat forward ones and why eps cannot be tiny."
+
+[[rooms]]
+id = "room_3"
+name = "The Descent"
+kind = "room"
+file = "rooms/room_3_the_descent.py"
+trial = "trials/test_room_3.py"
+blurb = "A linear model, its loss, its gradients, and the loop that walks downhill. Fit a line to noisy data, then feel how standardization turns a canyon into a bowl."
+
+[[rooms]]
+id = "room_4"
+name = "The Prophecy of Curves"
+kind = "room"
+file = "rooms/room_4_prophecy_of_curves.py"
+trial = "trials/test_room_4.py"
+blurb = "No code, only prophecy. Predict which learning rates glide, which oscillate and which fly off into the dark, before the machine runs a single step."
+
+[[rooms]]
+id = "room_5"
+name = "The Momentum Chamber"
+kind = "room"
+file = "rooms/room_5_momentum_chamber.py"
+trial = "trials/test_room_5.py"
+blurb = "Four optimizer steps as pure functions: SGD, heavy-ball momentum, Nesterov, Adam. Then a race down a narrow valley that plain SGD cannot win."
+
+[[rooms]]
+id = "boss"
+name = "The Learning-Rate Lich"
+kind = "boss"
+file = "rooms/boss_learning_rate_lich.py"
+trial = "trials/test_boss.py"
+blurb = "It rules a valley a thousand times steeper one way than the other. Fixed steps cannot cross it in time. Schedules and adaptive steps can."
+
+[[rooms]]
+id = "secret"
+name = "The Whispering Saddle"
+kind = "secret"
+file = "rooms/secret_whispering_saddle.py"
+trial = "trials/test_secret.py"
+blurb = "A ledge where the slope itself whispers how far to step: backtracking line search and the Armijo condition."
+
+[[loot]]
+name = "The Optimizer Grimoire"
+file = "loot/optimizers_grimoire.md"
+blurb = "One page of formulas: SGD, momentum, Nesterov, Adam, AdamW, bias correction, schedules, the 2/L stability rule and the gradient-checking recipe."
+
+[[loot]]
+name = "The Gradient Oracle (portable)"
+file = "loot/gradient_check.py"
+blurb = "A clean, reusable numerical gradient checker you can drop into any project: any-shape inputs, relative error, verdicts."

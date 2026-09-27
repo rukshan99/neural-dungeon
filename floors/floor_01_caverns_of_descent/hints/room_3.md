@@ -1,0 +1,5 @@
+Start with the residual `r = X @ w + b - y`, shape (N,). The loss is `np.mean(r ** 2)`. By the chain rule d loss / d r = 2 r / N, and r depends on w through X, so d loss / d w = X^T (2 r / N) with shape (D,), and d loss / d b = sum(2 r / N). Check them against the oracle from Room 1.2 if in doubt.
+---
+`gradient_descent`: `params = np.array(params, dtype=float)` (a copy), `history = [params.copy()]`, then `for k in range(1, steps + 1): params = params - lr * grad_fn(params); history.append(params.copy()); if callback: callback(k, params)`. Return `params, history`. `standardize_features`: `mean = X.mean(0); std = X.std(0); return (X - mean) / (std + eps), mean, std`.
+---
+`fit_linear_regression` is a plain loop: `w = np.zeros(X.shape[1]); b = 0.0; losses = []`, then `steps` times: `loss, gw, gb = linear_loss_and_grads(X, y, w, b); losses.append(loss); w = w - lr * gw; b = b - lr * gb`. Record the loss *before* the update so `losses[0]` is the loss at zero. The standardization trial passes as soon as the fit and standardize are right: the same loop simply needs ~700 steps on the raw canyon and ~3 on the standardized bowl.

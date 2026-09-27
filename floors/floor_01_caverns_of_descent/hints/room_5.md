@@ -1,0 +1,5 @@
+Read the state with defaults so a fresh `{}` works: `v = state.get("v", np.zeros_like(params))`, `t = state.get("t", 0)`. Compute the new state, compute the new params from it, and return a *new* dict: `return params - lr * v, {"v": v}`. Never write `params -= ...` or `state["v"] = ...` on the objects you were handed.
+---
+`momentum_step`: `v = beta * v + grads; return params - lr * v, {"v": v}`. `nesterov_step`: same v, then `params - lr * (grads + beta * v)`. `run_optimizer`: `params = np.array(x0, float); state = {}; history = [params.copy()]`, then `steps` times `params, state = step_fn(params, grad_fn(params), state, hparams); history.append(params.copy())`.
+---
+`adam_step`: `t = state.get("t", 0) + 1; m = b1 * m + (1 - b1) * grads; v = b2 * v + (1 - b2) * grads ** 2; m_hat = m / (1 - b1 ** t); v_hat = v / (1 - b2 ** t); return params - lr * m_hat / (np.sqrt(v_hat) + eps), {"m": m, "v": v, "t": t}` with `b1 = hparams.get("beta1", 0.9)`, `b2 = hparams.get("beta2", 0.999)`, `eps = hparams.get("eps", 1e-8)`. The bias-correction trial fails with a first step of 0.316 instead of 0.1 if you skip the `1 - b ** t` divisions.

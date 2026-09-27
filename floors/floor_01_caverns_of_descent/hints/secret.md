@@ -1,0 +1,5 @@
+The Armijo test compares two numbers: the loss after the trial step, `f(x + alpha * d)`, and the promise `f(x) + c * alpha * slope` where `slope = grad @ d` (negative for a descent direction). If the loss is at or below the promise, return alpha. Otherwise multiply alpha by rho and try again. Compute `f(x)` and `slope` once, outside the loop.
+---
+Guard first: `slope = float(np.dot(np.ravel(grad), np.ravel(direction)))`; `if slope >= 0: raise ValueError(...)`. Then `alpha = float(alpha0)`, and `for _ in range(100): if f(x + alpha * direction) <= fx + c * alpha * slope: return alpha; alpha *= rho`, with a RuntimeError after the loop. Returning the first passing alpha is what makes the "did you shrink one time too many" trial pass.
+---
+`gd_with_line_search`: `x = np.array(x0, float); history = [float(f(x))]`, then `for _ in range(max_steps): g = grad_f(x); if np.linalg.norm(g) < tol: break; alpha = backtracking_line_search(f, g, x, -g); x = x - alpha * g; history.append(float(f(x)))`. Return `x, history`. On Rosenbrock this reaches ~1.6e-7 in 10,000 steps with the default alpha0 = 1, rho = 0.5, c = 1e-4.

@@ -1,0 +1,5 @@
+Compute r = 1 - lr * a for each learning rate with a = 4: the four values are 0.6, 0.0, -0.6 and -1.4. Positive and below 1 shrinks smoothly; negative but above -1 shrinks while flipping sign; anything with |r| > 1 grows. r = 0 means the first step lands exactly on the minimum, which counts as smooth.
+---
+The one-step learning rate is where 1 - lr * a = 0, so lr = 1/a. The largest stable rate is where |1 - lr * a| reaches 1 from below, i.e. 1 - lr * a = -1, so lr = 2/a. For the bowl, each coordinate has its own r_i = 1 - lr * a_i and the same lr must keep *both* below 1 in magnitude; the coordinate with the larger a_i hits the boundary first.
+---
+Bowl answers: the a = 25 coordinate (index 1) sets the limit, at lr = 2/25 = 0.08. At lr = 0.07, r_0 = 0.93 and r_1 = 1 - 1.75 = -0.75; 0.93^50 = 0.027 while 0.75^50 = 6e-7, so coordinate 0 (the flat one) is the slow one. The curve answers, in order of lr: converges_smoothly, converges_smoothly, converges_oscillating, diverges; ONE_STEP_LR = 0.25; LARGEST_STABLE_LR = 0.5.
