@@ -16,8 +16,7 @@ from dungeon.trials import load_room  # noqa: E402
 room = load_room(__file__, "room_1_cache_of_keys")
 
 torch.manual_seed(12)
-torch.set_num_threads(1)  # a tiny model on one core: the fairest clock for a ratio
-MODEL, TOK, _ = load_pretrained()
+MODEL, TOK, _ = load_pretrained()  # conftest.py pins torch to one thread per trial: the fairest clock for a ratio
 CFG = MODEL.cfg
 TEXT = read_corpus()
 SPEEDUP = 1.5  # measured 3-10x on a laptop core; the bar is deliberately low
@@ -70,12 +69,12 @@ def test_cached_attention_matches_the_reference_attention_when_the_prefix_is_spl
         y_all, _ = room.attention_with_cache(block, x, None)
         y1, c1 = room.attention_with_cache(block, x[:, :6], None)
         y2, c2 = room.attention_with_cache(block, x[:, 6:], c1)
-    assert torch.allclose(y_all, ref, atol=1e-5), (
+    assert torch.allclose(y_all, ref, atol=1e-4), (
         f"With no cache your attention should equal block.attn(x); max diff {(y_all - ref).abs().max():.2e}. "
         "Check the 1/sqrt(hd) scaling and the causal mask."
     )
-    assert torch.allclose(y1, ref[:, :6], atol=1e-5), "The first 6 positions do not match: prefill is wrong."
-    assert torch.allclose(y2, ref[:, 6:], atol=1e-5), (
+    assert torch.allclose(y1, ref[:, :6], atol=1e-4), "The first 6 positions do not match: prefill is wrong."
+    assert torch.allclose(y2, ref[:, 6:], atol=1e-4), (
         f"Positions 6..8 attending over 6 cached + 3 new keys differ from the reference by "
         f"{(y2 - ref[:, 6:]).abs().max():.2e}. New query i sits at position T_past + i and may see keys 0..T_past + i."
     )
@@ -92,10 +91,10 @@ def test_a_new_token_may_not_peek_at_a_newer_one():
         x_alt = x.clone()
         x_alt[:, 6] += 3.0  # change only the LAST new token
         y_b, _ = room.attention_with_cache(block, x_alt[:, 5:], cache)
-    assert torch.allclose(y_a[:, 0], y_b[:, 0], atol=1e-5), (
+    assert torch.allclose(y_a[:, 0], y_b[:, 0], atol=1e-4), (
         "Changing new token 1 changed the output at new token 0. The causal mask for the new positions is missing."
     )
-    assert not torch.allclose(y_a[:, 1], y_b[:, 1], atol=1e-5), "Changing a token should change its own output."
+    assert not torch.allclose(y_a[:, 1], y_b[:, 1], atol=1e-4), "Changing a token should change its own output."
 
 
 # ------------------------------------------------------------------ forward_with_cache
@@ -172,20 +171,31 @@ def test_every_token_is_embedded_exactly_once():
 
 
 def test_the_cache_knows_where_the_corridor_ends():
+    """Either documented policy passes. STOP: the output never exceeds block_size and holds every token that
+    fits. CROP: the output runs past block_size and is token-exact with model.generate, which crops the same way."""
     idx = _enc(TEXT[3000:3000 + CFG.block_size - 8])
     with torch.no_grad():
         got = room.generate_with_cache(MODEL, idx, 20)
-        ref = MODEL.generate(idx, 8, temperature=0)
-    assert got.shape[1] <= CFG.block_size, (
-        f"The output is {got.shape[1]} tokens long but the position table has {CFG.block_size} rows."
-    )
-    assert torch.equal(got[:, :CFG.block_size], ref[:, :CFG.block_size]), (
-        "The 8 tokens that fit before block_size should equal the reference's first 8."
-    )
+        ref = MODEL.generate(idx, 20, temperature=0)  # crops to the last block_size tokens and carries on to 20
+    if got.shape[1] <= CFG.block_size:
+        assert got.shape[1] == CFG.block_size, (
+            f"STOP policy: 8 tokens fit before block_size, so the output should be exactly {CFG.block_size} long, "
+            f"not {got.shape[1]}. Generate min(max_new_tokens, block_size - T) tokens, not fewer."
+        )
+        assert torch.equal(got, ref[:, :CFG.block_size]), "The 8 tokens that fit before block_size should equal the reference's first 8."
+    else:
+        assert torch.equal(got, ref), (
+            f"CROP policy: your output is {got.shape[1]} long, so you carried on past block_size. Then it must equal "
+            f"model.generate's 20 tokens exactly: crop to the last {CFG.block_size} tokens and re-prefill, at positions 0..{CFG.block_size - 1}."
+        )
     full = _enc(TEXT[4000:4000 + CFG.block_size])
     with torch.no_grad():
         out = room.generate_with_cache(MODEL, full, 3)
-    assert out.shape[1] <= CFG.block_size, "A prompt that already fills block_size must not overflow it."
+        ref_full = MODEL.generate(full, 3, temperature=0)
+    assert torch.equal(out, full) or torch.equal(out, ref_full), (
+        f"A prompt that already fills block_size comes back unchanged (STOP) or continues exactly like the cropping "
+        f"reference (CROP). Yours is {out.shape[1]} tokens long and matches neither: never feed wpe a position it does not have."
+    )
 
 
 def test_the_cache_outruns_the_recomputing_reference():

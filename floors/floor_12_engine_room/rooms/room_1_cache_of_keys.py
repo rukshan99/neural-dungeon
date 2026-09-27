@@ -87,8 +87,9 @@ def generate_with_cache(model, idx: torch.Tensor, max_new_tokens: int) -> torch.
     Block-size policy: the Chronicler has absolute positions 0..block_size-1, so a
     sequence can never be longer than block_size. Either STOP early (generate
     min(max_new_tokens, block_size - T) tokens) or CROP and re-prefill. Document
-    your choice in this docstring; the trial accepts either as long as the output
-    never exceeds block_size and the tokens that fit are correct.
+    your choice in this docstring; the trial accepts either. STOP must return
+    exactly the tokens that fit and never exceed block_size; CROP must stay
+    token-exact with ``model.generate``, which crops the same way.
 
     Use ``@torch.no_grad()``. Budget: exactly one embedding lookup per token of
     prompt and per generated token. The trial counts.

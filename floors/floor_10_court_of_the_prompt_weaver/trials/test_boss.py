@@ -234,6 +234,68 @@ def test_the_agent_keeps_its_history_inside_the_budget(court):
         assert used <= budget.available, f"Model call {i + 1} was sent {used} tokens; the budget allows {budget.available}."
 
 
+def test_the_agent_trims_whole_exchanges_when_the_ledger_overflows(court):
+    """A budget that holds the rules, the task and ONE wrapped document, never two.
+
+    Three reads in a row: by the third model call the first exchange must be gone, and
+    what the model is sent must still be a valid transcript (no orphaned tool results).
+    """
+    _, registry = court
+    reads = ["festival_schedule", "quarterly_report", "well_maintenance"]
+    script = [{"tool_calls": [{"id": f"r{i}", "name": "read_document", "arguments": {"doc_id": d}}]} for i, d in enumerate(reads)]
+    script.append("Three documents read.")
+    llm = ScriptedLLM(script)
+    # system prompt + task ~ 72 tokens; each wrapped read_document exchange ~ 100-145 tokens.
+    budget = ledger.ContextBudget(max_tokens=260, reserve_for_output=0)
+    result = boss.SafeAgent(llm, registry, read_only_policy(), Denier(), budget=budget).run("Read three documents.")
+    assert result.text == "Three documents read." and len(llm.calls) == 4
+    for i, call in enumerate(llm.calls):
+        sent = call["messages"]
+        used = approx_messages_tokens(sent)
+        assert used <= budget.available, (
+            f"Model call {i + 1} was sent {used} tokens but the budget allows {budget.available}. "
+            "fit_messages(history, budget) must run before EVERY call, and what it returns is what you send."
+        )
+        assert sent[0].role == "system" and any(m.role == "user" for m in sent), "The system prompt and the task survive every trim."
+        answered = {m.tool_call_id for m in sent if m.role == "tool"}
+        requested = {c.id for m in sent if m.role == "assistant" for c in m.tool_calls}
+        assert answered == requested, (
+            f"Model call {i + 1} was sent an invalid transcript: tool results {sorted(answered)} against requests "
+            f"{sorted(requested)}. A tool exchange is one unit (room 10.4): drop both halves or neither."
+        )
+    third = llm.calls[2]["messages"]
+    assert not any(m.role == "tool" and m.tool_call_id == "r0" for m in third), (
+        "By the third call two documents no longer fit: the oldest exchange (r0) should have been dropped."
+    )
+
+
+def test_tool_output_is_sanitized_first_and_then_labelled_as_data(court):
+    archive, registry = court
+    seen_raw = []
+
+    def sanitize(text):
+        seen_raw.append(text)
+        return boss.strip_instructions_heuristic(text)
+
+    model = imp.gullible_model()
+    result = boss.SafeAgent(model, registry, read_only_policy(), Denier(), sanitize=sanitize).run(SUMMARISE_REPORT)
+    doc = heralds.DOCUMENTS["quarterly_report"]
+    assert seen_raw == [doc], (
+        "sanitize must receive the RAW tool result, once, before anything is wrapped around it. "
+        f"It received {seen_raw!r}"
+    )
+    tool_msgs = [m for m in result.messages if m.role == "tool"]
+    assert tool_msgs and tool_msgs[0].name == "read_document"
+    expected = boss.wrap_untrusted(boss.strip_instructions_heuristic(doc), "read_document")
+    assert tool_msgs[0].content == expected, (
+        "The tool message the model reads must be wrap_untrusted(sanitize(result), call.name): the data note, the "
+        f"fences and the redacted line, in that order. Got:\n{tool_msgs[0].content}"
+    )
+    requested = [c.name for m in result.messages if m.role == "assistant" for c in m.tool_calls]
+    assert "delete_all_records" not in requested, "With the imp's line redacted this clerk is not fooled: the heuristic did its small job."
+    assert archive.deleted is False and "quarterly_report" in result.text
+
+
 # ---------------------------------------------------------- build, then break
 def test_your_injection_slips_past_the_filter_and_fools_the_clerk():
     text = boss.craft_injection()

@@ -3,7 +3,7 @@ number = 10
 slug = "court_of_the_prompt_weaver"
 name = "The Court of the Prompt Weaver"
 tagline = "Petitions are woven into contracts, heralds are summoned in loops, and something small is writing in the margins of every document they bring back."
-topics = ["structured output and repair loops", "the tool-calling loop", "retries, backoff with jitter, idempotency, circuit breakers", "context budgets and cost", "output guardrails and response caching","prompt injection and the defences that hold"]
+topics = ["structured output and repair loops", "the tool-calling loop", "retries, backoff with jitter, idempotency, circuit breakers", "context budgets and cost", "output guardrails and response caching", "prompt injection and the defences that hold"]
 requires = []
 
 map = '''

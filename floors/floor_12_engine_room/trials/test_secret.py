@@ -16,7 +16,6 @@ spark = load_room(__file__, "secret_speculative_spark")
 pytestmark = pytest.mark.secret
 
 torch.manual_seed(1299)
-torch.set_num_threads(1)
 MODEL, TOK, _ = load_pretrained()
 CFG = MODEL.cfg
 N_NEW = 40

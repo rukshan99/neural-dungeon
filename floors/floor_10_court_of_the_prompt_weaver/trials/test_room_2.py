@@ -196,6 +196,22 @@ def test_the_step_budget_ends_an_endless_summoning():
     )
 
 
+def test_a_reply_cut_at_max_tokens_is_final_not_another_turn():
+    registry = make_court([])
+    llm = ScriptedLLM([
+        {"tool_calls": [call("look_around", id="c1")]},
+        {"text": "The torch is on the", "stop_reason": "max_tokens"},
+        "This reply must never be requested.",
+    ])
+    result = room.run_tool_loop(llm, registry, [Message.user("Describe the room at length.")])
+    assert result.text == "The torch is on the", f"A reply cut at max_tokens is still the final text; got {result.text!r}"
+    assert len(llm.calls) == 2 and result.steps == 2, (
+        f"Only stop_reason 'tool_use' asks for another turn. 'max_tokens' means the model was cut off, not that it "
+        f"wants tools; return what it said. You made {len(llm.calls)} model call(s)."
+    )
+    assert result.messages[-1].role == "assistant" and result.messages[-1].content == "The torch is on the"
+
+
 def test_the_callers_scroll_is_not_scribbled_on():
     registry = make_court([])
     original = [Message.system("Court rules."), Message.user("Look.")]

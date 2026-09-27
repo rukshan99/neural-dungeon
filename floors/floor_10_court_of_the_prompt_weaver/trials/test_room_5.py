@@ -6,7 +6,7 @@ is continued a bounded number of times, and no petitioner ever receives
 another petitioner's cached answer. The clock is injected; nothing sleeps.
 """
 
-from dungeon.artifacts.llm import Completion, Message, ScriptedLLM, TruncatingLLM
+from dungeon.artifacts.llm import Completion, Message, ScriptedLLM, ToolCall, TruncatingLLM
 from dungeon.trials import load_room
 
 room = load_room(__file__, "room_5_the_censors_veil")
@@ -264,6 +264,26 @@ def test_content_role_and_params_all_change_the_key():
     assert cache.key_for([Message.user("How wide is the moat?")], {"max_tokens": 100}) != base, "Different content, different key."
     assert cache.key_for([Message.system("How deep is the moat?")], {"max_tokens": 100}) != base, "Same text in a different role is a different request."
     assert cache.key_for([Message.user("How deep is the moat?")], {"max_tokens": 200}) != base, "Params are part of the request; hash them too."
+
+
+def test_tool_call_ids_do_not_change_the_key_but_their_arguments_do():
+    """Ids are minted per run; two runs that asked the same tool the same thing are the same request."""
+    cache = room.ResponseCache(ttl_seconds=60.0, max_entries=8, clock=FakeClock())
+
+    def transcript(call_id, query):
+        return [
+            Message.user("Where are the torches kept?"),
+            Message.assistant("Looking.", [ToolCall(call_id, "search_archive", {"query": query})]),
+            Message.tool(call_id, "Matching documents: torches", name="search_archive"),
+        ]
+
+    assert cache.key_for(transcript("call_0001", "torch"), {}) == cache.key_for(transcript("call_0917", "torch"), {}), (
+        "Two runs of the same conversation mint different tool call ids. Hash the tool calls' names and arguments, "
+        "not their ids, or the cache never hits on a transcript with tools in it."
+    )
+    assert cache.key_for(transcript("call_0001", "torch"), {}) != cache.key_for(transcript("call_0001", "lanterns"), {}), (
+        "Different tool arguments are a different request."
+    )
 
 
 def test_entries_expire_after_ttl_on_the_injected_clock():

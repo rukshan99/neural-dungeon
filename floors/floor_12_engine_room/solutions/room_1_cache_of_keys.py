@@ -91,7 +91,9 @@ def generate_with_cache(model, idx: torch.Tensor, max_new_tokens: int) -> torch.
     ``min(max_new_tokens, block_size - T)`` tokens and return. (The no-cache
     reference instead crops to the last block_size tokens, which shifts every
     position and would invalidate the cache; a real server reports
-    finish_reason="length" here.)
+    finish_reason="length" here. Cropping and re-prefilling every step once
+    the corridor ends is the other accepted policy; the trial then compares
+    against ``model.generate``.)
     """
     B, T = idx.shape
     n = min(max_new_tokens, model.cfg.block_size - T)

@@ -6,6 +6,7 @@ once with nonsense to see how politely they are turned away.
 """
 
 import json
+import threading
 import urllib.error
 import urllib.request
 
@@ -19,7 +20,6 @@ from dungeon.trials import load_room  # noqa: E402
 room = load_room(__file__, "room_5_the_gate")
 
 torch.manual_seed(125)
-torch.set_num_threads(1)
 MODEL, TOK, _ = load_pretrained()
 CFG = MODEL.cfg
 PROMPT = "Below them, the "
@@ -131,6 +131,42 @@ def test_stream_arrives_one_token_at_a_time_and_adds_up(gate):
     assert "".join(tokens) == whole["text"], (
         f"The streamed tokens {''.join(tokens)!r} must concatenate to the non-streamed text {whole['text']!r}."
     )
+
+
+def test_the_stream_really_streams_instead_of_buffering_until_the_end():
+    """A token stream that, after its first token, waits for the client to have READ the first line.
+
+    A server that flushes each line as it is made releases it at once. A server that buffers the
+    body until the generator finishes can never release it: the wait times out and the test fails.
+    """
+    released = threading.Event()
+    seen_release: list[bool] = []
+    ids = TOK.encode("ab")
+
+    def gated_stream(model, idx, max_new_tokens):
+        yield ids[0]
+        seen_release.append(released.wait(timeout=5.0))
+        yield ids[1]
+
+    server = room.InferenceServer(MODEL, TOK, host="127.0.0.1", port=0, token_stream=gated_stream)
+    server.start()
+    try:
+        payload = json.dumps({"prompt": PROMPT, "max_new_tokens": 2}).encode()
+        req = urllib.request.Request(server.url + "/stream", data=payload, headers={"Content-Type": "application/json"}, method="POST")
+        with urllib.request.urlopen(req, timeout=30) as resp:
+            first = resp.readline()
+            released.set()
+            rest = resp.read()
+    finally:
+        released.set()
+        server.stop()
+    assert json.loads(first) == {"token": "a"}, f"The first line of the stream should be the first token; got {first!r}"
+    assert seen_release == [True], (
+        "The client did not receive the first line until the whole reply had been generated: the stream is being "
+        "buffered. Write each line and flush() it as the token is produced, and send no Content-Length on /stream."
+    )
+    tail = [json.loads(line) for line in rest.decode("utf-8").splitlines() if line.strip()]
+    assert tail == [{"token": "b"}, {"done": True}], f"After the first line the rest of the stream should be the second token and the done marker; got {tail}"
 
 
 def test_nonsense_is_turned_away_with_a_400_and_a_json_error(gate):

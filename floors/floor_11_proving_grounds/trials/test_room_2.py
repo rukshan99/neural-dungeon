@@ -65,6 +65,23 @@ def test_the_same_seed_speaks_the_same_prophecy():
     assert first == second, "Same rng seed, same interval. Draw randomness only from the rng you were given."
 
 
+def test_the_oracle_draws_n_boot_stones_and_reads_the_alpha_over_two_percentiles():
+    """A statistic that ignores its sample and just counts calls: the recomputations are then exactly 0..n_boot-1,
+    so the interval's ends reveal which percentiles were read and how many resamples were drawn."""
+    ticks = iter(range(10**6))
+    low, high = room.bootstrap_ci(np.zeros(10), statistic=lambda _sample: float(next(ticks)), n_boot=2000, alpha=0.05)
+    assert 45 <= low <= 55 and 1945 <= high <= 1955, (
+        f"With n_boot=2000 the recomputations are 0..1999, and a 95% interval runs from their 2.5th to their 97.5th "
+        f"percentile: about (50, 1950). Got ({low:.1f}, {high:.1f}). About (100, 1900) means you used alpha where "
+        "alpha/2 belongs; a high end far below 1950 means fewer than n_boot resamples."
+    )
+    ticks = iter(range(10**6))
+    low, high = room.bootstrap_ci(np.zeros(10), statistic=lambda _sample: float(next(ticks)), n_boot=1000, alpha=0.2)
+    assert 95 <= low <= 105 and 895 <= high <= 905, (
+        f"n_boot=1000, alpha=0.2: the 10th and 90th percentiles of 0..999 are about (100, 900); got ({low:.1f}, {high:.1f})."
+    )
+
+
 def test_the_oracle_refuses_an_empty_bag():
     with pytest.raises(ValueError):
         room.bootstrap_ci([])
@@ -103,6 +120,22 @@ def test_the_oracle_resamples_fate_in_pairs():
         "You resampled a and b separately. Draw ONE set of indices and apply it to both."
     )
     assert room.is_significant((lo, hi)), "A consistent gain, however small, is significant when it is consistent."
+
+
+def test_the_paired_interval_is_as_wide_as_the_noise_in_the_differences():
+    """Continuous paired differences with a known spread: the 95% interval must be about 2 x 1.96 standard errors wide."""
+    rng = np.random.default_rng(15)
+    a = rng.normal(0.0, 1.0, size=400)
+    b = a + rng.normal(0.10, 0.5, size=400)
+    d = b - a
+    delta, lo, hi, p = room.paired_bootstrap(a, b, rng=np.random.default_rng(16))
+    assert math.isclose(delta, d.mean()), f"delta is mean(b - a) = {d.mean():.4f}; you said {delta:.4f}."
+    normal = 2 * 1.96 * d.std() / math.sqrt(400)
+    assert 0.88 * normal < hi - lo < 1.12 * normal, (
+        f"The 95% paired interval should be about 2 x 1.96 x sd(b - a) / sqrt(n) = {normal:.4f} wide; yours is "
+        f"{hi - lo:.4f}. About a sixth too narrow means you read the 5th and 95th percentiles: use alpha/2 and 1 - alpha/2."
+    )
+    assert lo > 0.0 and p < 0.05, f"A gain of 0.11 with SE 0.024 is unmistakable: ({lo:.4f}, {hi:.4f}), p={p}."
 
 
 def test_the_paired_oracle_refuses_unpaired_scores():

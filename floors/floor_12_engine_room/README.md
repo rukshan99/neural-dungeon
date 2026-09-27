@@ -83,7 +83,7 @@ cache_bytes = 2 * n_layer * T * n_embd * bytes_per_value      (times B for a bat
 
 The Chronicler at full context: `2 * 4 * 128 * 128 * 4 = 524,288` bytes, half a MiB, nothing. A 7-billion-parameter class model (32 layers, `n_embd` 4096, fp16) needs `2 * 32 * 4096 * 2 = 524,288` bytes *per token*: half a MiB per token, 2 GiB for a 4,096-token conversation, 32 GiB for sixteen of them. On big models the cache, not the weights, decides how many requests fit on the machine. That is why the memory-shaving tricks in the cheat sheet (paging the cache, quantizing it, sharing keys across heads) exist.
 
-**Positions and the end of the corridor.** The Chronicler's positions are absolute (`wpe` has exactly 128 rows), so a cached sequence can never grow past `block_size`. The reference `generate` crops to the last 128 tokens and re-runs; with a cache that would shift every position and invalidate everything. The reference solution *stops* at `block_size` (a real server would return `finish_reason="length"`). Cropping and re-prefilling is also acceptable; document your choice.
+**Positions and the end of the corridor.** The Chronicler's positions are absolute (`wpe` has exactly 128 rows), so a cached sequence can never grow past `block_size`. The reference `generate` crops to the last 128 tokens and re-runs; with a cache that would shift every position and invalidate everything. The reference solution *stops* at `block_size` (a real server would return `finish_reason="length"`). Cropping and re-prefilling is also acceptable, and the trial then holds you to `model.generate`, which crops the same way; document your choice.
 
 ### The Quantizer's Bench: int8
 

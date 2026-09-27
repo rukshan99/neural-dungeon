@@ -16,7 +16,6 @@ from dungeon.trials import load_room  # noqa: E402
 room = load_room(__file__, "room_2_quantizers_bench")
 
 torch.manual_seed(122)
-torch.set_num_threads(1)
 MODEL, TOK, _ = load_pretrained()
 CFG = MODEL.cfg
 TEXT = read_corpus()
@@ -127,6 +126,11 @@ def test_quantized_linear_stores_int8_and_answers_like_its_fp32_twin():
     q_bytes = sum(b.numel() * b.element_size() for b in int8_buffers)
     w_bytes = linear.weight.numel() * linear.weight.element_size()
     assert q_bytes * 4 == w_bytes, f"int8 codes take {q_bytes} bytes; the fp32 weight takes {w_bytes}. Expected a quarter."
+    float_copies = [t for t in list(qlin.buffers()) + list(qlin.parameters()) if t.dtype != torch.int8 and t.shape == linear.weight.shape]
+    assert not float_copies, (
+        "QuantizedLinear also keeps a full-size float tensor of the weight's shape, which is the 4x you were meant to "
+        "save. Store the int8 codes and the scale only, and dequantize inside forward."
+    )
 
 
 def test_a_linear_without_bias_is_welcome_too():

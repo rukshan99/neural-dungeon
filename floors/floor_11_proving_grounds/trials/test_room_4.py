@@ -97,6 +97,19 @@ def test_a_champion_that_faints_mid_trial_scores_zero_not_a_crash():
     assert math.isclose(report.score, 20 / 24), "The other 23 cases must still run."
 
 
+def test_a_scorer_that_jams_is_recorded_too_not_raised():
+    def jamming_scorer(case, output):
+        if case.id == "lore_01":
+            raise ValueError("the scales jammed")
+        return room.contains(case, output)
+
+    report = room.EvalSuite(_cases()).run(champion(), jamming_scorer)
+    jammed = next(r for r in report.per_case if r.id == "lore_01")
+    assert jammed.score == 0.0 and not jammed.passed, "A scorer that raises scores that case 0, like a system that raises."
+    assert "ERROR" in jammed.output and "ValueError" in jammed.output, f"Record the scorer's error as the output too; got {jammed.output!r}."
+    assert math.isclose(report.score, 20 / 24), "The other 23 cases still run and are scored normally."
+
+
 def test_the_suite_refuses_duplicate_ids():
     with pytest.raises(ValueError):
         room.EvalSuite([_case(), _case()])

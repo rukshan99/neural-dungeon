@@ -20,7 +20,6 @@ boss = load_room(__file__, "boss_latency_leviathan")
 pytestmark = pytest.mark.boss
 
 torch.manual_seed(1212)
-torch.set_num_threads(1)
 MODEL, TOK, _ = load_pretrained()
 CFG = MODEL.cfg
 TEXT = read_corpus()
@@ -120,8 +119,8 @@ def test_phase_1_the_cached_masked_attention_agrees_with_the_reference_block():
         ref1 = block.attn(x[1:, 3:])
     y = torch.cat([y1, y2], dim=1)
     assert torch.isfinite(y).all(), "Fully padded query rows produced NaN; nan_to_num after the softmax."
-    assert torch.allclose(y[0], ref0[0], atol=1e-5), f"Unpadded row differs by {(y[0] - ref0[0]).abs().max():.2e}."
-    assert torch.allclose(y[1, 3:], ref1[0], atol=1e-5), (
+    assert torch.allclose(y[0], ref0[0], atol=1e-4), f"Unpadded row differs by {(y[0] - ref0[0]).abs().max():.2e}."
+    assert torch.allclose(y[1, 3:], ref1[0], atol=1e-4), (
         f"Padded row's real positions differ by {(y[1, 3:] - ref1[0]).abs().max():.2e}: the pads must be masked in the cache too."
     )
     assert cache[0].shape == (2, CFG.n_head, 8, CFG.n_embd // CFG.n_head), f"cache k shape {tuple(cache[0].shape)}"

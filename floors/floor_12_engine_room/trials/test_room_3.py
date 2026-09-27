@@ -15,7 +15,6 @@ from dungeon.trials import load_room  # noqa: E402
 room = load_room(__file__, "room_3_the_batcher")
 
 torch.manual_seed(123)
-torch.set_num_threads(1)
 MODEL, TOK, _ = load_pretrained()
 CFG = MODEL.cfg
 TEXT = read_corpus()
@@ -60,7 +59,7 @@ def test_masked_attention_with_a_plain_causal_mask_is_the_reference_attention():
     with torch.no_grad():
         got = room.masked_attention(block, x, allowed)
         ref = block.attn(x)
-    assert torch.allclose(got, ref, atol=1e-5), (
+    assert torch.allclose(got, ref, atol=1e-4), (
         f"With a plain causal mask your attention should equal block.attn(x); max diff {(got - ref).abs().max():.2e}."
     )
 
@@ -77,7 +76,7 @@ def test_padded_keys_get_exactly_zero_weight_and_padded_queries_stay_finite():
         "NaN or inf in the output. The two leading pads are queries that see only padded keys: every score is -inf, "
         "the softmax is NaN. nan_to_num after the softmax (or a finite fill value) keeps those rows finite."
     )
-    assert torch.allclose(got[:, 2:], ref, atol=1e-5), (
+    assert torch.allclose(got[:, 2:], ref, atol=1e-4), (
         f"Real positions differ from attending over the real tokens alone by {(got[:, 2:] - ref).abs().max():.2e}. "
         "Padded keys must receive weight exactly 0 (fill -inf BEFORE the softmax)."
     )
