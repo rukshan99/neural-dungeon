@@ -1,0 +1,65 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "neural-dungeon"
+version = "0.1.0"
+description = "A gamified, code-first dungeon crawl from AI engineering fundamentals to production."
+readme = "README.md"
+requires-python = ">=3.11"
+license = { text = "MIT" }
+authors = [{ name = "Neural Dungeon contributors" }]
+keywords = ["machine-learning", "deep-learning", "llm", "education", "pytorch", "numpy"]
+classifiers = [
+  "Intended Audience :: Developers",
+  "Intended Audience :: Education",
+  "Programming Language :: Python :: 3",
+  "Topic :: Education",
+  "Topic :: Scientific/Engineering :: Artificial Intelligence",
+]
+dependencies = [
+  "numpy>=1.24",
+  "pytest>=7.4",
+]
+
+[project.optional-dependencies]
+# Floors 4 and deeper need PyTorch. CPU is plenty; see README for the CPU-only wheel.
+torch = ["torch>=2.1"]
+all = ["torch>=2.1"]
+dev = ["torch>=2.1", "ruff>=0.4"]
+
+[project.scripts]
+dungeon = "dungeon.cli:main"
+
+[project.urls]
+Homepage = "https://github.com/rukshan99/neural-dungeon"
+Issues = "https://github.com/rukshan99/neural-dungeon/issues"
+
+[tool.setuptools]
+packages = ["dungeon", "dungeon.artifacts"]
+
+[tool.setuptools.package-data]
+"dungeon.artifacts" = ["*.txt", "*.pt", "*.json"]
+
+[tool.pytest.ini_options]
+testpaths = ["floors"]
+pythonpath = ["."]
+addopts = "--strict-markers -rN"
+markers = [
+  "boss: a boss fight (end-of-floor challenge)",
+  "secret: an optional hard challenge; not required to clear a floor",
+  "slow: takes more than ~20 seconds on a laptop CPU",
+]
+filterwarnings = [
+  "ignore::DeprecationWarning",
+]
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+extend-exclude = [".venv", ".dungeon"]
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I"]
+ignore = ["E501"]

@@ -1,0 +1,83 @@
+id = "floor_00"
+number = 0
+slug = "the_threshold"
+name = "The Threshold"
+tagline = "Every spell cast below this point is spoken in shapes. Learn the tongue before you descend."
+topics = ["arrays and dtypes", "shapes, axes and reshaping", "broadcasting rules", "vectorization", "einsum"]
+requires = []
+
+map = '''
+            ☀ the surface
+            │
+   ┌────────┴────────┐     ┌──────────────────┐     ┌──────────────────────┐
+   │  0.1 THE GATE-  │─────│  0.2 THE HALL    │─────│  0.3 THE BROADCASTING│
+   │     KEEPER      │     │     OF SHAPES    │     │        BRIDGE        │
+   └─────────────────┘     └──────────────────┘     └──────────┬───────────┘
+                                                               │
+   ┌─────────────────┐     ┌──────────────────┐                │
+   │ ☠ THE BASILISK'S│─────│  0.4 THE SPEEDRUN│────────────────┘
+   │      LAIR       │     │     GALLERY      │
+   └────────┬────────┘     └──────────────────┘
+            ┆  ◇ a draught from below: the Einsum Oubliette
+            ▼  stairs down to Floor 1
+'''
+
+[lines]
+room_cleared = "The runes on the wall stop flickering. Onward."
+room_failed = "The gatekeeper tilts its head. Wrong shape, traveller."
+boss_intro = "Something with too many eyes uncoils in the dark. Every eye is a different shape. It wants to know if you can tell which pairs are compatible."
+boss_defeated = "The Basilisk's gaze slides off you. You know the rules of broadcasting now, and it knows you know."
+floor_cleared = "The Threshold is behind you. Below, someone is measuring loss."
+
+[[rooms]]
+id = "room_1"
+name = "The Gatekeeper"
+kind = "room"
+file = "rooms/room_1_the_gatekeeper.py"
+trial = "trials/test_room_1.py"
+blurb = "Prove your environment breathes. Learn the trial loop: edit, run, read the verdict."
+
+[[rooms]]
+id = "room_2"
+name = "The Hall of Shapes"
+kind = "room"
+file = "rooms/room_2_hall_of_shapes.py"
+trial = "trials/test_room_2.py"
+blurb = "Reshape, transpose, stack, slice. Then a prophecy: predict shapes before the machine computes them."
+
+[[rooms]]
+id = "room_3"
+name = "The Broadcasting Bridge"
+kind = "room"
+file = "rooms/room_3_broadcasting_bridge.py"
+trial = "trials/test_room_3.py"
+blurb = "Cross a chasm using only broadcasting. No loops. The bridge collapses under a for."
+
+[[rooms]]
+id = "room_4"
+name = "The Speedrun Gallery"
+kind = "room"
+file = "rooms/room_4_speedrun_gallery.py"
+trial = "trials/test_room_4.py"
+blurb = "Four loops, each with a cursed slowness. Vectorize them and beat the clock."
+
+[[rooms]]
+id = "boss"
+name = "The Broadcasting Basilisk"
+kind = "boss"
+file = "rooms/boss_broadcasting_basilisk.py"
+trial = "trials/test_boss.py"
+blurb = "Its gaze petrifies numpy's helpers. You must apply the broadcasting rules yourself."
+
+[[rooms]]
+id = "secret"
+name = "The Einsum Oubliette"
+kind = "secret"
+file = "rooms/secret_einsum_oubliette.py"
+trial = "trials/test_secret.py"
+blurb = "A cell where only one incantation is permitted: einsum. Express six operations with it."
+
+[[loot]]
+name = "Grimoire of Shapes and Broadcasting"
+file = "loot/shapes_and_broadcasting.md"
+blurb = "A one-page cheat sheet: the broadcasting rules, reshape vs transpose, None-indexing, einsum idioms and the shape bugs everyone hits."

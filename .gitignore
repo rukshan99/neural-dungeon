@@ -1,0 +1,29 @@
+# Your personal progress through the dungeon (hints used, trials cleared).
+.dungeon/
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+build/
+dist/
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+
+# Environments
+.venv/
+venv/
+env/
+.env
+
+# Editors
+.vscode/
+.idea/
+*.swp
+.DS_Store
+
+# Scratch checkpoints and runs produced while playing
+runs/
+*.ckpt
+floors/**/checkpoints/
