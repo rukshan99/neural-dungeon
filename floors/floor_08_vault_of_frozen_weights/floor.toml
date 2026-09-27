@@ -1,0 +1,88 @@
+id = "floor_08"
+number = 8
+slug = "vault_of_frozen_weights"
+name = "The Vault of Frozen Weights"
+tagline = "A finished model sleeps here under ice. Teach it a new tongue without waking what it already knows."
+topics = ["checkpoints and requires_grad", "freezing", "LoRA and parameter-efficient fine-tuning", "fine-tuning loops", "catastrophic forgetting and its mitigations", "adapter swapping and merging"]
+requires = ["torch"]
+
+map = '''
+            ▼ stairs down from Floor 7
+            │
+   ┌────────┴────────┐     ┌──────────────────┐     ┌──────────────────────┐
+   │  8.1 THE VAULT  │─────│  8.2 THE LOW-RANK│─────│  8.3 THE ADAPTATION  │
+   │      DOOR       │     │      SIGIL       │     │                      │
+   └─────────────────┘     └──────────────────┘     └──────────┬───────────┘
+                                                               │
+   ┌─────────────────┐     ┌──────────────────┐                │
+   │ ☠ THE FORGETTER │─────│  8.4 THE         │────────────────┘
+   │   ANTECHAMBER   │     │     FORGETTING   │
+   └────────┬────────┘     └──────────────────┘
+            ┆  ◇ a cold draught: the Replay Well
+            ▼  stairs down to Floor 9
+'''
+
+[lines]
+room_cleared = "The frost on the vault door does not crack. Whatever you changed, you changed on purpose."
+room_failed = "Somewhere in the vault a weight shifts that should not have. The trial noticed."
+boss_intro = "A pale thing drifts between the shelves, touching checkpoints. Where its fingers pass, the models forget. It smiles: 'Teach them anything you like. I will keep what they lose.'"
+boss_defeated = "The Forgetter reaches for the chronicles and finds them still there, under the ice, behind a sigil it cannot read. It fades."
+floor_cleared = "The vault is yours: frozen base, swappable sigils, merged exports. Below, a library answers every question, whether or not it has the book."
+
+[[rooms]]
+id = "room_1"
+name = "The Vault Door"
+kind = "room"
+file = "rooms/room_1_the_vault_door.py"
+trial = "trials/test_room_1.py"
+blurb = "Load the Chronicler's checkpoint. Freeze exactly what you mean to, count what is left, and prove afterwards that nothing else moved."
+
+[[rooms]]
+id = "room_2"
+name = "The Low-Rank Sigil"
+kind = "room"
+file = "rooms/room_2_the_low_rank_sigil.py"
+trial = "trials/test_room_2.py"
+blurb = "LoRA from scratch: a frozen Linear plus a trainable rank-r correction that starts as exactly nothing. Inject it, count it, merge it."
+
+[[rooms]]
+id = "room_3"
+name = "The Adaptation"
+kind = "room"
+file = "rooms/room_3_the_adaptation.py"
+trial = "trials/test_room_3.py"
+blurb = "The fine-tuning loop. Teach the Chronicler the goblin ledger through its sigils alone: loss 6.8 to under 1.5 while the base stays frozen."
+
+[[rooms]]
+id = "room_4"
+name = "The Forgetting"
+kind = "room"
+file = "rooms/room_4_the_forgetting.py"
+trial = "trials/test_room_4.py"
+blurb = "Measure what the new tongue costs the old one. Full fine-tune, lower lr, LoRA, replay: prophesy which forgets most and least."
+
+[[rooms]]
+id = "boss"
+name = "The Catastrophic Forgetter"
+kind = "boss"
+file = "rooms/boss_catastrophic_forgetter.py"
+trial = "trials/test_boss.py"
+blurb = "It erases what a model knew whenever it learns something new. Beat it with adapters, replay, a switch to turn the sigils off, and a merge."
+
+[[rooms]]
+id = "secret"
+name = "The Replay Well"
+kind = "secret"
+file = "rooms/secret_the_replay_well.py"
+trial = "trials/test_secret.py"
+blurb = "An exact replay schedule and elastic weight consolidation: a Fisher-weighted spring on every weight that mattered."
+
+[[loot]]
+name = "LoRA From Scratch"
+file = "loot/lora_from_scratch.py"
+blurb = "A clean, commented LoRALinear + inject + merge you can drop into any PyTorch project."
+
+[[loot]]
+name = "Fine-Tuning Cheat Sheet"
+file = "loot/finetuning_cheat_sheet.md"
+blurb = "Full FT vs LoRA vs adapters vs prompt tuning, the r/alpha rule of thumb, which modules to target, the forgetting mitigations, merge vs runtime adapters, checkpoint hygiene."

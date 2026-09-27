@@ -1,0 +1,5 @@
+`make_batches` is a generator: encode once into `data = torch.tensor(tokenizer.encode(text), dtype=torch.long)`, then `while True:` draw `ix = torch.randint(0, len(data) - block_size, (batch_size,), generator=generator)` and yield `torch.stack([data[i:i+block_size] for i in ix])` and the same with `i+1`.
+---
+`finetune`: `params = [p for p in model.parameters() if p.requires_grad]`, `opt = torch.optim.AdamW(params, lr=lr, weight_decay=weight_decay)`, `batches = make_batches(...)`, remember `model.training`, call `model.train()`, then per step: `x, y = next(batches)`; `_, loss = model(x, y)`; `opt.zero_grad(set_to_none=True)`; `loss.backward()`; `opt.step()`; `losses.append(loss.item())`. Restore the mode with `model.train(was_training)`.
+---
+`evaluate_loss`: decorate with `@torch.no_grad()`, remember the mode, `model.eval()`, pull `n_batches` batches from `make_batches`, average `model(x, y)[1].item()`, restore the mode, return the float. The trial checks that no `.grad` is left behind and no weight changed.

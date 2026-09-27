@@ -1,0 +1,5 @@
+`mixed_batches`: two `make_batches` streams and a counter `i`. Batch `i` is a replay batch when `int((i + 1) * ratio + 1e-9) > int(i * ratio + 1e-9)` (the tiny epsilon guards against `0.3 * 10 == 2.9999...`). Yield `(x, y, "old")` from the old stream in that case, `(x, y, "new")` otherwise.
+---
+`fisher_diagonal`: `fisher = {n: torch.zeros_like(p) for trainable (n, p)}`; in eval mode, for each batch: `model.zero_grad(set_to_none=True)`, `loss.backward()`, then `fisher[n] += p.grad ** 2 / n_batches`. Zero the grads again at the end. `ewc_penalty`: `total = sum((fisher[n] * (p - snap[n]) ** 2).sum() for (n, p) in model.named_parameters() if n in fisher)`; return `0.5 * lam * total`. Start `total` as `torch.zeros(())` so it is a tensor even when nothing matches.
+---
+`finetune_with_ewc` is `finetune` with one extra line: `total = loss + ewc_penalty(model, snap, fisher_diag, lam)` and `total.backward()` instead of `loss.backward()`. Record `loss.item()` (the task loss), not `total`. With `lam = 1e5` on this model the chronicles loss stays ~0.9 lower than a plain fine-tune while the ledger is still learned.
