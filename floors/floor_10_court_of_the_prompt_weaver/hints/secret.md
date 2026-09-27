@@ -1,0 +1,5 @@
+`run_tools_parallel`: `with ThreadPoolExecutor(max_workers=max_workers) as pool:` submit every call first (`pool.submit(registry.call, call.name, call.arguments)`), collecting the futures in a list. Do not read any result until all are submitted, or the chained heralds deadlock (and time out into ToolErrors).
+---
+Then `return [f.result() for f in futures]`. `Future.result()` blocks until that particular future finishes, so iterating the futures in submission order yields results in submission order, no matter which thread finished first. `as_completed` would hand them back in finish order, which is the bug the trial is looking for.
+---
+`JSONStreamAssembler.complete()`: walk `self.text` with `depth`, `in_string` and `escaped` flags exactly like room 10.1's balance scanner; inside a string only `\` and `"` matter. Complete means: at least one opener seen, `depth == 0`, not inside a string, depth never went negative, and `json.loads(self.text)` succeeds (catch `ValueError`). `result()` raises `ValueError` unless `complete()`; otherwise returns `json.loads(self.text)`.

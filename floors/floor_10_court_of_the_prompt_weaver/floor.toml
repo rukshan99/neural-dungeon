@@ -1,0 +1,88 @@
+id = "floor_10"
+number = 10
+slug = "court_of_the_prompt_weaver"
+name = "The Court of the Prompt Weaver"
+tagline = "Petitions are woven into contracts, heralds are summoned in loops, and something small is writing in the margins of every document they bring back."
+topics = ["structured output and repair loops", "the tool-calling loop", "retries, backoff with jitter, idempotency, circuit breakers", "context budgets and cost", "prompt injection and the defences that hold"]
+requires = []
+
+map = '''
+            ▼ stairs from Floor 9
+            │
+   ┌────────┴────────┐     ┌──────────────────┐     ┌──────────────────────┐
+   │ 10.1 THE        │─────│ 10.2 THE         │─────│ 10.3 THE RESILIENCE  │
+   │      CONTRACT   │     │      SUMMONING   │     │        WARD          │
+   └─────────────────┘     │      LOOP        │     └──────────┬───────────┘
+                           └──────────────────┘                │
+   ┌─────────────────┐     ┌──────────────────┐                │
+   │ ☠ THE IMP'S     │─────│ 10.4 THE LEDGER  │────────────────┘
+   │   ANTECHAMBER   │     │                  │
+   └────────┬────────┘     └──────────────────┘
+            ┆  ◇ a side door: the Parallel Court
+            ▼  stairs down to Floor 11
+'''
+
+[lines]
+room_cleared = "The Weaver nods. The contract holds. Onward."
+room_failed = "The Weaver reads your work twice and says nothing, which is worse."
+boss_intro = "The heralds return with a report. Something small has written in its margin, in a hand that is not the scribe's. Your clerk begins to read it aloud."
+boss_defeated = "The Imp's sentence is read, obeyed by the clerk, and refused by the court. It has never been refused before. It leaves."
+floor_cleared = "The Court is behind you. Below, someone is keeping score of how often the model is right."
+
+[[rooms]]
+id = "room_1"
+name = "The Contract"
+kind = "room"
+file = "rooms/room_1_the_contract.py"
+trial = "trials/test_room_1.py"
+blurb = "Pull JSON out of prose and fences, validate it against a schema with readable error paths, and loop the errors back until the model complies or you give up."
+
+[[rooms]]
+id = "room_2"
+name = "The Summoning Loop"
+kind = "room"
+file = "rooms/room_2_the_summoning_loop.py"
+trial = "trials/test_room_2.py"
+blurb = "The tool-calling state machine: execute every call, answer every id, turn tool failures into text, stop after max_steps."
+
+[[rooms]]
+id = "room_3"
+name = "The Resilience Ward"
+kind = "room"
+file = "rooms/room_3_the_resilience_ward.py"
+trial = "trials/test_room_3.py"
+blurb = "Exponential backoff with full jitter, a retry wrapper that honours Retry-After, idempotency keys and a circuit breaker. Nothing sleeps: the trial injects time."
+
+[[rooms]]
+id = "room_4"
+name = "The Ledger"
+kind = "room"
+file = "rooms/room_4_the_ledger.py"
+trial = "trials/test_room_4.py"
+blurb = "Fit a conversation into a token budget without orphaning a tool result, price the tokens, and summarise what you had to drop."
+
+[[rooms]]
+id = "boss"
+name = "The Injected Imp"
+kind = "boss"
+file = "rooms/boss_injected_imp.py"
+trial = "trials/test_boss.py"
+blurb = "A document tells your clerk to delete the archive. The clerk obeys. Build the defences that hold anyway, then break the keyword filter yourself."
+
+[[rooms]]
+id = "secret"
+name = "The Parallel Court"
+kind = "secret"
+file = "rooms/secret_parallel_court.py"
+trial = "trials/test_secret.py"
+blurb = "Run independent tool calls concurrently and keep the results in order; assemble streamed JSON one brace at a time."
+
+[[loot]]
+name = "Agent Loop Template"
+file = "loot/agent_loop_template.py"
+blurb = "An importable, provider-neutral tool loop with retries, a context budget, an allowlist, confirmation for irreversible tools and an audit log. Start your next agent from it."
+
+[[loot]]
+name = "Prompt Injection Defences"
+file = "loot/prompt_injection_defenses.md"
+blurb = "The threat model, why filters fail, what each defence does and does not stop, and a checklist for agents in production."
