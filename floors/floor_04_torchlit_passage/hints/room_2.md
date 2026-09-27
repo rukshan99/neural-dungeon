@@ -1,0 +1,5 @@
+`super().__init__()` first, always. Then `self.layers = nn.ModuleList(...)` built from consecutive pairs of `sizes` (`zip(sizes[:-1], sizes[1:])`) and `self.act = activation()`. In `forward`, `x.flatten(1)` keeps the batch axis; loop over the layers with `enumerate` and apply `self.act` only when it is not the last one.
+---
+`count_parameters`: `sum(p.numel() for p in model.parameters() if p.requires_grad)`. `init_weights`: write a small function that checks `isinstance(m, nn.Linear)` and calls `nn.init.kaiming_normal_(m.weight, nonlinearity="relu")` and `nn.init.zeros_(m.bias)`, then `model.apply(that_function)`. `manual_forward`: `h = h @ layer.weight.T + layer.bias`, activation between layers, exactly mirroring `forward`.
+---
+`serialize`: `buf = io.BytesIO(); torch.save(model.state_dict(), buf); return buf.getvalue()`. `deserialize_into`: `model.load_state_dict(torch.load(io.BytesIO(blob))); return model` (strict is the default, so the wrong architecture raises for free). `freeze`: loop over `model.named_parameters()`, and for names that `startswith(prefix)` call `param.requires_grad_(False)` and count.

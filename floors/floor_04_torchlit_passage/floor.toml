@@ -1,0 +1,97 @@
+id = "floor_04"
+number = 4
+slug = "torchlit_passage"
+name = "The Torchlit Passage"
+tagline = "The torches are already lit. Someone else built the fire. Learn to trust it without being fooled by it."
+topics = ["tensors and autograd", "nn.Module and parameters", "Dataset and DataLoader", "the training loop and its classic bugs", "device-agnostic code", "determinism and checkpoint/resume"]
+requires = ["torch"]
+
+map = '''
+            ▲ stairs up from Floor 3, where you forged layers by hand
+            │
+   ┌────────┴────────┐     ┌──────────────────┐     ┌──────────────────┐
+   │  4.1 THE FIRST  │─────│  4.2 THE MODULE  │─────│  4.3 THE LOADER'S│
+   │      TORCH      │     │      FORGE       │     │     LANTERN      │
+   └─────────────────┘     └──────────────────┘     └────────┬─────────┘
+                                                             │
+   ┌─────────────────┐     ┌──────────────────┐     ┌────────┴─────────┐
+   │ ☠ THE REVENANT'S│─────│  4.5 THE DEVICE  │─────│  4.4 THE CURSED  │
+   │      CRYPT      │     │      FERRY       │     │  TRAINING LOOP   │
+   └────────┬────────┘     └──────────────────┘     └──────────────────┘
+            ┆  ◇ a whisper behind the crypt wall: the Custom Whisper
+            ▼  stairs down to Floor 5
+'''
+
+[lines]
+room_cleared = "The torch in its bracket burns a little steadier. Onward."
+room_failed = "The torchlight flickers. The library did what you told it, not what you meant."
+boss_intro = "Something climbs out of the checkpoint you never saved. It wears your model's face and none of its weights. Train it again and it comes back different. It always comes back different."
+boss_defeated = "The Revenant rises one last time, identical to the last, and finding nothing changed, lies down. Bitwise."
+floor_cleared = "The Torchlit Passage is behind you. Below, someone is cutting words into pieces."
+
+[[rooms]]
+id = "room_1"
+name = "The First Torch"
+kind = "room"
+file = "rooms/room_1_first_torch.py"
+trial = "trials/test_room_1.py"
+blurb = "Tensors that remember their gradients. backward, accumulation, detach vs clone, no_grad, and the in-place rules. Then a prophecy: six snippets, predict the gradient or the crash."
+
+[[rooms]]
+id = "room_2"
+name = "The Module Forge"
+kind = "room"
+file = "rooms/room_2_module_forge.py"
+trial = "trials/test_room_2.py"
+blurb = "Build an MLP as an nn.Module, count and initialise its parameters, reproduce its forward with raw matmuls, ship its weights through a byte buffer, and freeze a layer."
+
+[[rooms]]
+id = "room_3"
+name = "The Loader's Lantern"
+kind = "room"
+file = "rooms/room_3_loaders_lantern.py"
+trial = "trials/test_room_3.py"
+blurb = "A Dataset over the rune glyphs, a DataLoader whose shuffle you can reproduce, one epoch of training and one honest evaluation."
+
+[[rooms]]
+id = "room_4"
+name = "The Cursed Training Loop"
+kind = "room"
+mode = "cursed"
+file = "rooms/room_4_cursed_training_loop.py"
+trial = "trials/test_room_4.py"
+blurb = "Complete, running, and learning nothing. Seven curses hide in a training loop. The trials name the symptoms; you lift the curses."
+
+[[rooms]]
+id = "room_5"
+name = "The Device Ferry"
+kind = "room"
+file = "rooms/room_5_device_ferry.py"
+trial = "trials/test_room_5.py"
+blurb = "Pick a device, ferry nested batches across, fix the float64 that numpy smuggled in, and ask a model where it lives."
+
+[[rooms]]
+id = "boss"
+name = "The Reproducibility Revenant"
+kind = "boss"
+file = "rooms/boss_reproducibility_revenant.py"
+trial = "trials/test_boss.py"
+blurb = "It comes back different every time you train it. Seed every die, checkpoint every piece of state, and resume a run so exactly that nobody can tell it was interrupted."
+
+[[rooms]]
+id = "secret"
+name = "The Custom Whisper"
+kind = "secret"
+file = "rooms/secret_custom_whisper.py"
+trial = "trials/test_secret.py"
+blurb = "Autograd has been doing the backward pass for you all floor. Behind the crypt wall, write one yourself: a torch.autograd.Function with a hand-written gradient, judged by gradcheck."
+
+[[loot]]
+name = "The PyTorch Debugging Checklist"
+file = "loot/pytorch_debugging_checklist.md"
+blurb = "The seven curses and ten more classic training-loop bugs with symptoms and fixes, the shape and dtype table for the common losses, what train() and eval() actually change, and when to detach."
+
+[[loot]]
+name = "Training Loop Template (torch)"
+file = "loot/training_loop_template_torch.py"
+blurb = "A clean, device-agnostic, fully seeded training loop with checkpoint and exact resume. Copy it into every project; delete what you do not need."

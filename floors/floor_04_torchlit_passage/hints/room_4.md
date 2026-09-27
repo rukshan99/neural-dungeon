@@ -1,0 +1,5 @@
+Run the trial and read every failure, not just the first. Start with the one that crashes: a dtype message about labels. Then hunt by category. Two curses are in the small helpers (`prepare_batch`, `compute_loss`, `accuracy`), one is a number in `make_optimizer`, and the rest are things `train_epoch` and `evaluate` never do. Each fix is one line; do not rewrite the file.
+---
+Four of the seven: labels must be `int64`, not float (`CrossEntropyLoss` wants class indices). `compute_loss` must pass raw logits; `F.cross_entropy` applies `log_softmax` itself, so the extra `softmax` caps how low the loss can go. `accuracy` must `argmax(dim=1)` (one winner per row), not `dim=0`. `lr=10.0` overshoots; `0.05` learns.
+---
+The other three all live in the loops. `train_epoch` needs `optimizer.zero_grad()` before `loss.backward()` (gradients accumulate otherwise), `total_loss += loss.item()` (summing tensors keeps every batch's graph alive), and `model.train()` at the top. `evaluate` needs `model.eval()` at the top, so dropout stops zeroing activations while you measure. That is seven.
