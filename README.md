@@ -83,7 +83,7 @@ Every room has a reference implementation in `solutions/`. It is there so the re
 | 11 | **The Proving Grounds** | classification metrics, perplexity, bootstrap confidence intervals, LLM-as-judge, eval harnesses, regression | The Goodhart Gorgon | numpy |
 | 12 | **The Engine Room** | KV caching, int8 quantization, batching, latency percentiles, a streaming inference server | The Latency Leviathan | torch |
 
-Each floor takes an evening or two. Floors are independent enough to enter out of order if you already know a topic, but the first time through, go down in sequence: later floors reuse habits (and one shared tiny GPT) from earlier ones.
+Each floor takes an evening or two. Floors are independent enough to enter out of order if you already know a topic, but the first time through, go down in sequence: later floors reuse habits (and one shared tiny GPT) from earlier ones. When the map shows every floor cleared, read [EPILOGUE.md](EPILOGUE.md).
 
 ## What a floor looks like
 
