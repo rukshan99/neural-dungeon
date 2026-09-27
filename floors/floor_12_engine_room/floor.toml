@@ -19,7 +19,8 @@ map = '''
    │     TRENCH      │     │ (to the outside) │     │   (a wall of gauges) │
    └────────┬────────┘     └──────────────────┘     └──────────────────────┘
             ┆  ◇ a spark jumping the trench: the Speculative Spark
-            ■  There is nothing below the Engine Room. This is the bottom.
+            ■  Nothing below the Engine Room. This is the bottom. A service lift,
+            ▲  unnoticed on the way down, rises to the Watchtower (Floor 13).
 '''
 
 [lines]
@@ -27,7 +28,7 @@ room_cleared = "A gauge settles. Somewhere above, a request finishes sooner than
 room_failed = "The pipes hiss. Something is being recomputed that was already known."
 boss_intro = "The water in the trench rises. Segment after segment surfaces, each one stamped with a token you computed twice. The Leviathan does not need to hurry. You did that for it."
 boss_defeated = "The Leviathan sinks, shorter than it surfaced. Every key was computed once. Every petition rode the ferry. The gauges agree."
-floor_cleared = "The Engine Room hums evenly. You came down to learn how the machine works; the machine now runs the way you would have built it. There are no more stairs."
+floor_cleared = "The Engine Room hums evenly. You came down to learn how the machine works; the machine now runs the way you would have built it. There are no more stairs down. Behind the last gauge, a service lift is waiting to take you up to the Watchtower."
 
 [[rooms]]
 id = "room_1"

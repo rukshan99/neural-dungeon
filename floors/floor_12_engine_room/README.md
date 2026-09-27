@@ -15,7 +15,8 @@
    │     TRENCH      │     │ (to the outside) │     │   (a wall of gauges) │
    └────────┬────────┘     └──────────────────┘     └──────────────────────┘
             ┆  ◇ a spark jumping the trench: the Speculative Spark
-            ■  There is nothing below the Engine Room. This is the bottom.
+            ■  Nothing below the Engine Room. This is the bottom. A service lift,
+            ▲  unnoticed on the way down, rises to the Watchtower (Floor 13).
 ```
 
 The stairs end here. Every floor above taught you to build and train the machine; this one is about *running* it, when someone else is waiting on the other end of a socket. The Chronicler you meet here is the same 802,560-parameter GPT from `dungeon/artifacts/chronicler.pt`. You will not train it. You will make it fast, small, concurrent, measured, and reachable.
@@ -249,4 +250,4 @@ Clear the five rooms and defeat the Leviathan to unlock:
 - The failure messages say what shape or concept is wrong and what was observed. Read them before reading anything else.
 - `solutions/` exists. After an honest attempt, compare; do not copy.
 
-When `dungeon map` shows the Engine Room cleared, there are no more stairs. You built the machine, you taught it, and now it runs the way you would have built it. Go and serve something. Then climb back to the surface: `EPILOGUE.md` at the root of the dungeon is waiting for you.
+When `dungeon map` shows the Engine Room cleared, there are no more stairs down. You built the machine, you taught it, and now it runs the way you would have built it. Behind the last gauge a service lift is waiting: it goes up, past every floor and the surface, to the Watchtower (Floor 13), where the deployed machine is watched. Take it. `EPILOGUE.md` at the root of the dungeon is for after that.

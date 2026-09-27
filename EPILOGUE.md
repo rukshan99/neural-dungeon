@@ -2,7 +2,7 @@
 
 > *You climb the last stair. The light is very bright. Somebody hands you a coffee.*
 
-If `dungeon status` says **Dungeon Master**, you have written, from scratch and with tests watching: broadcasting rules, gradient descent, an autograd engine, a training loop with regularization, PyTorch pipelines that reproduce bitwise, two tokenizers, multi-head attention, a GPT you trained on the dungeon's own chronicles, LoRA, a retrieval pipeline that refuses to hallucinate, a tool-using agent that an Imp could not hijack, an evaluation harness that a Gorgon could not game, and an inference server with a KV cache. That is a real skill set. It is roughly the syllabus of an applied AI engineering role, and you did the parts most people skip.
+If `dungeon status` says **Dungeon Master**, you have written, from scratch and with tests watching: broadcasting rules, gradient descent, an autograd engine, a training loop with regularization, PyTorch pipelines that reproduce bitwise and train in mixed precision across workers, two tokenizers, multi-head attention with rotary positions and grouped queries, a GPT you trained on the dungeon's own chronicles, LoRA, instruction tuning and DPO, a retrieval pipeline that refuses to hallucinate, a tool-using agent that an Imp could not hijack (and that redacts what it should not repeat), an evaluation harness that a Gorgon could not game, an inference server with a KV cache, and a watchtower that notices the world drifting before the accuracy does. That is a real skill set. It is roughly the syllabus of an applied AI engineering role, and you did the parts most people skip.
 
 ## What you now know that you might not have noticed
 

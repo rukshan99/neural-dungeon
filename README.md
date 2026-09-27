@@ -11,10 +11,10 @@
 
 **A code-first dungeon crawl from AI engineering fundamentals to production.**
 
-You are a software engineer. You can ship. You have used an LLM API and maybe trained a model by copying a notebook. What you do not have is the feeling that you *understand* the thing, from the gradient up to the KV cache. Neural Dungeon is thirteen floors of hands-on, test-driven exercises that build that understanding, wrapped in a game so you keep going.
+You are a software engineer. You can ship. You have used an LLM API and maybe trained a model by copying a notebook. What you do not have is the feeling that you *understand* the thing, from the gradient up to the KV cache. Neural Dungeon is fourteen floors of hands-on, test-driven exercises that build that understanding, wrapped in a game so you keep going.
 
 - **Every lesson is code you write.** Rooms are Python files with `TODO`s. Trials are pytest suites that judge them. Nothing is cleared by reading.
-- **Every floor is a topic.** Broadcasting. Gradient descent. Backprop from scratch. PyTorch. Tokenizers. Attention. A GPT you train yourself. LoRA. Retrieval. Agents. Evals. Inference optimization.
+- **Every floor is a topic.** Broadcasting. Gradient descent. Backprop from scratch. PyTorch. Tokenizers. Attention. A GPT you train yourself. LoRA, instruction tuning and DPO. Retrieval. Agents. Evals. Inference optimization. Monitoring what you deployed.
 - **Every floor has a boss** whose weakness is the concept being tested. The Overfit Hydra grows a head for every memorized training example. The Oracle Who Peeks leaks the future through a bad causal mask.
 - **Runs on a laptop CPU, offline, with no API keys.** A GPU is never required. Real-provider adapters exist for the LLM floors but every trial uses deterministic mocks.
 - **Story is the wrapper, not the content.** The lore is there to make you smile; the engineering is precise. When the two conflict, the engineering wins.
@@ -73,15 +73,16 @@ Every room has a reference implementation in `solutions/`. It is there so the re
 | 1 | **The Caverns of Descent** | loss functions, gradients, gradient checking, gradient descent, momentum, Adam, schedules | The Learning-Rate Lich | numpy |
 | 2 | **The Chain of Whispers** | the chain rule, a scalar and tensor autograd engine from scratch, vanishing gradients | The Vanishing Wraith | numpy |
 | 3 | **The Forge of Layers** | MLPs, initialization, mini-batch training loops, validation, regularization | The Overfit Hydra | numpy |
-| 4 | **The Torchlit Passage** | PyTorch tensors, autograd, `nn.Module`, `DataLoader`, debugging cursed training loops, determinism | The Reproducibility Revenant | torch |
+| 4 | **The Torchlit Passage** | PyTorch tensors, autograd, `nn.Module`, `DataLoader`, debugging cursed training loops, device-agnostic code, mixed precision and loss scaling, determinism | The Reproducibility Revenant | torch |
 | 5 | **The Scriptorium of Tokens** | character and byte-pair tokenizers, Unicode, embeddings, positional encodings, token budgets | The Babel Golem | torch |
-| 6 | **The Hall of a Thousand Heads** | scaled dot-product attention, causal and padding masks, multi-head attention, leakage detection | The Oracle Who Peeks | torch |
-| 7 | **The Tower of the Transformer** | LayerNorm, transformer blocks, a GPT you train on the dungeon's own chronicles, sampling strategies | The Stuttering Sovereign | torch |
-| 8 | **The Vault of Frozen Weights** | checkpoints, freezing, LoRA from scratch, fine-tuning, catastrophic forgetting | The Catastrophic Forgetter | torch |
+| 6 | **The Hall of a Thousand Heads** | scaled dot-product attention, causal and padding masks, multi-head attention, leakage detection, rotary embeddings, grouped-query attention | The Oracle Who Peeks | torch |
+| 7 | **The Tower of the Transformer** | LayerNorm and RMSNorm, transformer blocks, a GPT you train on the dungeon's own chronicles, sampling strategies, data-parallel training with all-reduce and DDP | The Stuttering Sovereign | torch |
+| 8 | **The Vault of Frozen Weights** | checkpoints, freezing, LoRA from scratch, fine-tuning and catastrophic forgetting, instruction tuning with loss masking, direct preference optimisation | The Catastrophic Forgetter | torch |
 | 9 | **The Library of Echoes** | embeddings, cosine similarity, vector indexes, chunking, RAG, grounding and citations | The Hallucinating Librarian | numpy |
-| 10 | **The Court of the Prompt Weaver** | structured outputs, tool-calling loops, retries and backoff, context budgets, prompt injection defenses | The Injected Imp | numpy |
+| 10 | **The Court of the Prompt Weaver** | structured outputs, tool-calling loops, retries and backoff, context budgets, prompt injection defenses, output guardrails (PII, secrets, refusals) and response caching | The Injected Imp | none |
 | 11 | **The Proving Grounds** | classification metrics, perplexity, bootstrap confidence intervals, LLM-as-judge, eval harnesses, regression | The Goodhart Gorgon | numpy |
-| 12 | **The Engine Room** | KV caching, int8 quantization, batching, latency percentiles, a streaming inference server | The Latency Leviathan | torch |
+| 12 | **The Engine Room** | KV caching, int8 quantization, batching, latency percentiles, a streaming inference server, speculative decoding | The Latency Leviathan | torch |
+| 13 | **The Watchtower** | tracing, drift detection (PSI, KS, JS), canary releases and ramps, alerting with hysteresis, error budgets, the label-delay and peeking problems | The Silent Drift | numpy |
 
 Thirteen floors, 56 rooms, 13 bosses, 13 secret rooms, 1,230 trials. Each floor takes an evening or two. Floors are independent enough to enter out of order if you already know a topic, but the first time through, go down in sequence: later floors reuse habits (and one shared tiny GPT) from earlier ones. When the map shows every floor cleared, read [EPILOGUE.md](EPILOGUE.md).
 
@@ -118,7 +119,7 @@ Outside that path, and not covered (yet): convolutional networks and computer vi
 
 **Do I need a GPU?** No. Every trial is sized for a laptop CPU. If you have one, PyTorch will use it where it helps, and nothing changes.
 
-**Do I need an API key?** No. The LLM floors (9 to 11) use deterministic mock models so trials are fast and free. Optional adapters for real providers are included for your own experiments, never for trials.
+**Do I need an API key?** No. The LLM floors (9 to 11 and 13) use deterministic mock models so trials are fast and free. Optional adapters for real providers are included for your own experiments, never for trials.
 
 **I am stuck.** `dungeon hint N room` gives one hint at a time. Failure messages are deliberate. The floor README covers every concept a room needs. After that, `solutions/`.
 
