@@ -1,0 +1,5 @@
+Run the trial and read the *first* failure only. Symptom to location: the root's own grad is zero, so look at what `backward()` seeds. The whisper stops one step from the root, so look at the *direction* `backward()` walks its list. `a * a` hears only one whisper, so look at how `__mul__` writes into `.grad`. Fix one, re-run, repeat. Two of the six curses live in `backward()` itself.
+---
+For the remaining three, check each unary derivative against finite differences: `(f(x + h) - f(x - h)) / (2 * h)` with `h = 1e-6`, compared with `.grad` after `backward()`. Try `tanh`, `exp` and `x ** 3` at `x = 2.0`. Then ask: can the derivative of a squashing function ever exceed 1? What quantity has `exp` already computed that its derivative should reuse? What does the power rule multiply by?
+---
+The six lines. In `backward()`: `self.grad = 1.0` and `for v in reversed(topo):`. In `__mul__`: both lines `+=`, not `=`. In `tanh`: `(1.0 - t * t)`. In `__pow__`: `exponent * self.data ** (exponent - 1) * out.grad`. In `exp`: `out.data * out.grad`, not `self.data`.

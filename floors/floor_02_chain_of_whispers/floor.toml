@@ -1,0 +1,88 @@
+id = "floor_02"
+number = 2
+slug = "chain_of_whispers"
+name = "The Chain of Whispers"
+tagline = "Every gradient you will ever compute is a message passed back along a chain. Learn to hear it before it fades."
+topics = ["the chain rule", "reverse-mode autodiff", "a scalar autograd engine", "a tensor autograd engine", "broadcasting-aware gradients", "vanishing and exploding gradients"]
+requires = []
+
+map = '''
+            ┆ stairs from Floor 1
+            ▼
+   ┌─────────────────┐     ┌──────────────────┐     ┌──────────────────────┐
+   │ 2.1 THE WHISPER-│─────│ 2.2 THE NEURON'S │─────│  2.3 THE TENSOR      │
+   │    ING VALUE    │     │     WHISPER      │     │      WHISPER         │
+   └─────────────────┘     └──────────────────┘     └──────────┬───────────┘
+                                                               │
+   ┌─────────────────┐     ┌──────────────────┐                │
+   │ ☠ THE WRAITH'S  │─────│  2.4 THE CURSED  │────────────────┘
+   │     CAVERN      │     │     BACKWARD     │
+   └────────┬────────┘     └──────────────────┘
+            ┆  ◇ a short corridor behind the lair: the Fused Whisper
+            ▼  stairs down to Floor 3
+'''
+
+[lines]
+room_cleared = "The whisper reaches the front of the chain, unchanged. Onward."
+room_failed = "Somewhere along the chain a whisperer misheard. Read the trial: it says which."
+boss_intro = "The cavern goes on for fifty layers. At the far end, something says your name; by the time it reaches you it is a rounding error. The Wraith does not attack. It waits."
+boss_defeated = "The whisper arrives at full volume. The Wraith, which was only ever a product of small numbers, has nothing left to multiply."
+floor_cleared = "The Chain of Whispers is behind you. Below, someone is tuning a learning rate and swearing."
+
+[[rooms]]
+id = "room_1"
+name = "The Whispering Value"
+kind = "room"
+file = "rooms/room_1_whispering_value.py"
+trial = "trials/test_room_1.py"
+blurb = "Build a scalar autograd engine: a Value that remembers its children and whispers gradients back. The diamond graph and the double backward are waiting."
+
+[[rooms]]
+id = "room_2"
+name = "The Neuron's Whisper"
+kind = "room"
+file = "rooms/room_2_neurons_whisper.py"
+trial = "trials/test_room_2.py"
+blurb = "Neurons, layers and an MLP made of Values. Train it on XOR with hand-written SGD, and learn why zero_grad exists."
+
+[[rooms]]
+id = "room_3"
+name = "The Tensor Whisper"
+kind = "room"
+file = "rooms/room_3_tensor_whisper.py"
+trial = "trials/test_room_3.py"
+blurb = "The same engine over numpy arrays. Broadcasting goes forward for free; on the way back you must sum it away."
+
+[[rooms]]
+id = "room_4"
+name = "The Cursed Backward"
+kind = "room"
+file = "rooms/room_4_cursed_backward.py"
+trial = "trials/test_room_4.py"
+blurb = "A complete autograd engine with six planted bugs. Find them from the symptoms; the trial names no fixes."
+
+[[rooms]]
+id = "boss"
+name = "The Vanishing Wraith"
+kind = "boss"
+file = "rooms/boss_vanishing_wraith.py"
+trial = "trials/test_boss.py"
+blurb = "Fifty layers deep, every derivative below one. Measure the gradient at each layer, prophesy who survives, then name a configuration that does."
+
+[[rooms]]
+id = "secret"
+name = "The Fused Whisper"
+kind = "secret"
+file = "rooms/secret_fused_whisper.py"
+trial = "trials/test_secret.py"
+blurb = "Fuse softmax and cross-entropy into one graph node whose backward is (softmax - onehot) / N, and never overflow again."
+
+[[loot]]
+name = "Grimoire of Derivatives"
+file = "loot/derivatives_grimoire.md"
+blurb = "Every local derivative you wrote on this floor, the unbroadcast rule, the topological-sort recipe, the accumulation gotchas, and why fifty small numbers multiply to nothing."
+
+[[loot]]
+name = "Micro Autograd"
+file = "loot/micro_autograd.py"
+blurb = "A clean, commented, complete scalar + tensor autograd engine (numpy only) to reuse whenever you need a gradient and do not want a framework."
