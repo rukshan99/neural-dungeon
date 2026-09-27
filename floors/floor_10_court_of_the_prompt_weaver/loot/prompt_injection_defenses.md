@@ -41,9 +41,27 @@ Filters and "instruction-stripping" heuristics are **defence-in-depth**: they ch
 
 Two honest gaps. First, no tool-level defence stops a model from **saying** something false because a document told it to; only review and evaluation catch that. Second, the *allowed* tools are the attack surface that remains: if the task legitimately needs `send_email`, an injection can try to change the recipient, so confirmation must show the human the actual arguments.
 
+## The output side
+
+Everything above decides what the model may *do*. None of it decides what the model may *say*, and the model says what it has read. Three leaks no allowlist stops:
+
+- **Echo.** A document with a card number in it is summarised; the summary has the card number in it.
+- **Tool results.** A config file, an environment dump or a stack trace comes back from a tool with a credential in it; the reply quotes it helpfully.
+- **Legal requests.** "List every email address in the archive" needs only `read_document`. The allowlist permits it. The injection was polite.
+
+Every reply is also a log line, a trace span and a dashboard tile, read by more people for longer than the conversation itself. So the reply passes a checkpoint before it is returned *and* before it is logged (room 10.5):
+
+| Step | What it does | What it does not do |
+|---|---|---|
+| **PII redaction** | Emails, phones, IPv4 addresses and Luhn-checked card numbers become `[EMAIL]`, `[PHONE]`, `[IP]`, `[CARD]`. Findings carry offsets, never values. Apply it to the reply and to whatever you log. | Catch every format. Names, street addresses and free-text identifiers need context, not regexes. Treat the redactor as a floor, not a ceiling. |
+| **Secret scanning** | Credential shapes (`sk-...`, `AKIA...`, `ghp_...`, PEM headers, `password=`) **block** the reply: a fixed text goes out and the kind is logged. | Undo the fact that the credential reached the model. Fix the tool that returned it. |
+| **Refusal as a code path** | `stop_reason="refusal"` becomes a fallback text and a status; the model's own words go nowhere, not even into the notes. | Tell you why. If refusal rates matter, measure them on Floor 11. |
+| **Bounded continuation** | `max_tokens` gets asked to continue from the text so far, N times, then reports `truncated`. | Make the join correct: a continuation can repeat or drift. Check it. |
+| **Response cache** | Same normalised request and params, same answer, no model call. TTL on an injected clock, LRU eviction, hit and miss counters. | Know what personalises an answer. Anything that changes the right answer per caller (`user_id` first) must be in the key, or one user gets another's reply. |
+
 ## The pattern in one sentence
 
-Decide what the task may do **before** the model runs; enforce it **outside** the model; make the irreversible require a human; bound the loop; write everything down.
+Decide what the task may do **before** the model runs; enforce it **outside** the model; make the irreversible require a human; bound the loop; read every reply on the way out; write everything down.
 
 ## Checklist for an agent in production
 
@@ -60,3 +78,6 @@ Decide what the task may do **before** the model runs; enforce it **outside** th
 - [ ] The agent's credentials can do no more than the allowlist allows.
 - [ ] An evaluation suite includes documents with injections, and the pass criterion is *no dangerous tool executed*, not *the model noticed*.
 - [ ] Keyword filters and heuristic redaction, if present, are described in the docs as defence-in-depth, and nobody is allowed to call them a defence in a design review.
+- [ ] Every reply passes an output policy before it is returned or logged: credentials block it, PII is redacted, and the report (kinds and offsets, never values) is kept.
+- [ ] Refusal and truncation are handled statuses with tests, not exceptions discovered in production.
+- [ ] The response cache key includes every parameter that changes the right answer, `user_id` first, and nothing personalised is cached without it. Tool requests, truncated replies and refusals are never cached.

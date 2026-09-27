@@ -3,7 +3,7 @@ number = 10
 slug = "court_of_the_prompt_weaver"
 name = "The Court of the Prompt Weaver"
 tagline = "Petitions are woven into contracts, heralds are summoned in loops, and something small is writing in the margins of every document they bring back."
-topics = ["structured output and repair loops", "the tool-calling loop", "retries, backoff with jitter, idempotency, circuit breakers", "context budgets and cost", "prompt injection and the defences that hold"]
+topics = ["structured output and repair loops", "the tool-calling loop", "retries, backoff with jitter, idempotency, circuit breakers", "context budgets and cost", "output guardrails and response caching","prompt injection and the defences that hold"]
 requires = []
 
 map = '''
@@ -14,10 +14,10 @@ map = '''
    │      CONTRACT   │     │      SUMMONING   │     │        WARD          │
    └─────────────────┘     │      LOOP        │     └──────────┬───────────┘
                            └──────────────────┘                │
-   ┌─────────────────┐     ┌──────────────────┐                │
-   │ ☠ THE IMP'S     │─────│ 10.4 THE LEDGER  │────────────────┘
-   │   ANTECHAMBER   │     │                  │
-   └────────┬────────┘     └──────────────────┘
+   ┌─────────────────┐     ┌──────────────────┐     ┌──────────┴───────────┐
+   │ ☠ THE IMP'S     │─────│ 10.5 THE CENSOR'S│─────│ 10.4 THE LEDGER      │
+   │   ANTECHAMBER   │     │      VEIL        │     │                      │
+   └────────┬────────┘     └──────────────────┘     └──────────────────────┘
             ┆  ◇ a side door: the Parallel Court
             ▼  stairs down to Floor 11
 '''
@@ -62,6 +62,14 @@ trial = "trials/test_room_4.py"
 blurb = "Fit a conversation into a token budget without orphaning a tool result, price the tokens, and summarise what you had to drop."
 
 [[rooms]]
+id = "room_5"
+name = "The Censor's Veil"
+kind = "room"
+file = "rooms/room_5_the_censors_veil.py"
+trial = "trials/test_room_5.py"
+blurb = "The output side: redact PII with a Luhn check, block replies that carry credentials, treat refusals and truncation as code paths, and cache answers without ever serving one user's reply to another."
+
+[[rooms]]
 id = "boss"
 name = "The Injected Imp"
 kind = "boss"
@@ -85,4 +93,9 @@ blurb = "An importable, provider-neutral tool loop with retries, a context budge
 [[loot]]
 name = "Prompt Injection Defences"
 file = "loot/prompt_injection_defenses.md"
-blurb = "The threat model, why filters fail, what each defence does and does not stop, and a checklist for agents in production."
+blurb = "The threat model, why filters fail, what each defence does and does not stop, the output side, and a checklist for agents in production."
+
+[[loot]]
+name = "Prompting Patterns"
+file = "loot/prompting_patterns.md"
+blurb = "Roles, format and audience, few-shot examples, delimiters, reasoning versus answers, decomposition, self-checks, temperature, prompts as versioned code, and the anti-patterns. Vendor-neutral."
