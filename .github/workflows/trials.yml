@@ -36,6 +36,11 @@ jobs:
       - name: Every floor manifest is consistent
         run: python scripts/lint_floors.py
 
+      - name: Engine tests
+        env:
+          NO_COLOR: "1"
+        run: pytest tests -q -p no:cacheprovider
+
       - name: Every trial passes against the reference solutions
         env:
           DUNGEON_SOLUTIONS: "1"

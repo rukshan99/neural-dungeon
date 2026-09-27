@@ -43,7 +43,7 @@ packages = ["dungeon", "dungeon.artifacts"]
 "dungeon.artifacts" = ["*.txt", "*.pt", "*.json"]
 
 [tool.pytest.ini_options]
-testpaths = ["floors"]
+testpaths = ["floors", "tests"]
 pythonpath = ["."]
 addopts = "--strict-markers -rN"
 markers = [
