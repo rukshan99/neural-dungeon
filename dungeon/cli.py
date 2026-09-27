@@ -168,7 +168,8 @@ def cmd_enter(args: argparse.Namespace, root: Path) -> int:
     print(ui.bold("  Rooms"))
     for i, room in enumerate(floor.regular_rooms, start=1):
         g = _room_status_glyph(status, room, data)
-        print(f"   {g} {floor.number}.{i} {ui.bold(room.name):<40} {ui.dim(room.file)}")
+        tag = ui.magenta(" ☿ cursed code") if room.is_cursed else ""
+        print(f"   {g} {floor.number}.{i} {ui.bold(room.name):<40} {ui.dim(room.file)}{tag}")
         if room.blurb:
             print(ui.dim(ui.wrap(room.blurb, indent="       ")))
     if floor.boss:

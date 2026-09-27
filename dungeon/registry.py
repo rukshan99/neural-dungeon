@@ -26,6 +26,9 @@ class DungeonError(RuntimeError):
     """Raised when the dungeon itself (not your code) is misconfigured."""
 
 
+ROOM_MODES = ("build", "cursed")
+
+
 @dataclass(frozen=True)
 class Room:
     id: str
@@ -34,10 +37,15 @@ class Room:
     file: str
     trial: str
     blurb: str = ""
+    mode: str = "build"  # "build": fill in stubs; "cursed": fix deliberately broken code
 
     @property
     def trial_stem(self) -> str:
         return Path(self.trial).stem
+
+    @property
+    def is_cursed(self) -> bool:
+        return self.mode == "cursed"
 
     @property
     def is_boss(self) -> bool:
@@ -150,6 +158,9 @@ def _parse_room(raw: dict, floor_dir: Path) -> Room:
     for key in ("id", "name", "file", "trial"):
         if key not in raw:
             raise DungeonError(f"{floor_dir.name}: room is missing required key {key!r}: {raw}")
+    mode = raw.get("mode", "build")
+    if mode not in ROOM_MODES:
+        raise DungeonError(f"{floor_dir.name}: room mode must be one of {ROOM_MODES}, got {mode!r}")
     return Room(
         id=raw["id"],
         name=raw["name"],
@@ -157,6 +168,7 @@ def _parse_room(raw: dict, floor_dir: Path) -> Room:
         file=raw["file"],
         trial=raw["trial"],
         blurb=raw.get("blurb", "").strip(),
+        mode=mode,
     )
 
 

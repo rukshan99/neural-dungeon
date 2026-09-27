@@ -25,9 +25,10 @@ map = '''
 [lines]
 room_cleared = "The whisper reaches the front of the chain, unchanged. Onward."
 room_failed = "Somewhere along the chain a whisperer misheard. Read the trial: it says which."
+room_cursed = "The curse holds. Finite-difference the whisperers one at a time; the liar is in there."
 boss_intro = "The cavern goes on for fifty layers. At the far end, something says your name; by the time it reaches you it is a rounding error. The Wraith does not attack. It waits."
 boss_defeated = "The whisper arrives at full volume. The Wraith, which was only ever a product of small numbers, has nothing left to multiply."
-floor_cleared = "The Chain of Whispers is behind you. Below, someone is tuning a learning rate and swearing."
+floor_cleared = "The Chain of Whispers is behind you. Below, a forge is running hot and someone is hammering layers into shape."
 
 [[rooms]]
 id = "room_1"
@@ -57,6 +58,7 @@ blurb = "The same engine over numpy arrays. Broadcasting goes forward for free; 
 id = "room_4"
 name = "The Cursed Backward"
 kind = "room"
+mode = "cursed"
 file = "rooms/room_4_cursed_backward.py"
 trial = "trials/test_room_4.py"
 blurb = "A complete autograd engine with six planted bugs. Find them from the symptoms; the trial names no fixes."

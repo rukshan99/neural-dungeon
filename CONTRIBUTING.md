@@ -83,6 +83,7 @@ ASCII map of the floor's rooms. Keep it under 80 columns.
 [lines]                         # flavour the plugin prints; all optional
 room_cleared = "..."
 room_failed = "..."
+room_cursed = "..."             # shown when a mode="cursed" room still has curses
 boss_intro = "..."
 boss_defeated = "..."
 floor_cleared = "..."
@@ -94,6 +95,9 @@ kind = "room"                   # room | boss | secret
 file = "rooms/room_1_altar_of_loss.py"
 trial = "trials/test_room_1.py"
 blurb = "One or two sentences shown by `dungeon enter`."
+# mode = "cursed"               # optional: a debug-the-cursed-code room that ships
+                                # complete-but-buggy code; the summary then reads
+                                # "curses lifted" instead of "failed"
 
 [[rooms]]
 id = "boss"

@@ -287,6 +287,9 @@ def pytest_terminal_summary(terminalreporter, exitstatus: int, config: pytest.Co
         elif res.unwritten and res.unwritten == res.failed + res.errors:
             path = floor.path.relative_to(state.root) / room.file
             write(ui.cyan(f"  ✎ {label} - unwritten ({res.passed}/{total}). Open {path}"))
+        elif room.is_cursed:
+            write(ui.magenta(f"  ☿ {label} - cursed ({res.passed}/{total} curses lifted)"))
+            write(ui.magenta("    " + floor.line("room_cursed", "The curse holds. Read the symptoms above; gradient-check your way in.")))
         else:
             write(ui.red(f"  ✗ {label} - {res.passed}/{total} trials passed"))
             write(ui.red("    " + floor.line("room_failed", "The trial is not fooled. Read the failures above.")))
