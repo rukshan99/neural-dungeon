@@ -1,0 +1,2 @@
+# The browser bundle is generated from web/ by `npm run build`; keep its diffs out of review.
+dungeon/web/static/assets/* -diff linguist-generated=true
