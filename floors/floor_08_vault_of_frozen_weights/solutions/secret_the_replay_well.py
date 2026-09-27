@@ -5,8 +5,8 @@ Spoilers below. The stub you are meant to edit is in ../rooms/.
 Two more ways to make the loss remember:
 
 * Replay with an exact schedule. Instead of mixing rows inside a batch, whole
-  batches alternate between corpora on a fixed ratio, so over N batches
-  exactly round(N * ratio) come from the old text.
+  batches alternate between corpora on a fixed ratio, so among any first N
+  batches exactly floor(N * ratio) come from the old text.
 * Elastic Weight Consolidation (Kirkpatrick et al., 2017). Estimate how much
   each weight mattered to the old task with the diagonal Fisher information
   F_i = E[(dL/dw_i)^2] on old data, then penalise moving it:

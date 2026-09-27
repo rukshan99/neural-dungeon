@@ -24,7 +24,7 @@ BOTH measures, so random noise cannot win:
     fluency:    mean per-token NLL under the model <= 1.0
 
 Greedy scores about 0.23 on diversity. Uniform noise scores 1.0 on diversity
-and about 11 on NLL. Sensible sampling sits at 0.85-0.95 and 0.15-0.5.
+and about 11 on NLL. Sensible sampling sits at 0.8-0.95 and 0.15-0.6.
 
 The fight has four phases:
 

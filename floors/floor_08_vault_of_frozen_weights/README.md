@@ -73,7 +73,7 @@ params = [p for p in model.parameters() if p.requires_grad]   # hand the optimiz
 opt = torch.optim.AdamW(params, lr=lr)
 ```
 
-The filter on the last line matters. AdamW keeps two extra tensors (first and second moment) per parameter it is given, so handing it frozen parameters wastes memory. And with `weight_decay > 0`, AdamW would shrink frozen weights even though their gradient is None (decoupled decay does not look at the gradient). Freeze, then filter.
+The filter on the last line matters. AdamW keeps two extra tensors (first and second moment) per parameter it is given, so handing it frozen parameters wastes memory: two float32 copies of every weight you promised not to touch. PyTorch's optimizers skip a parameter whose `.grad` is `None`, so a *cleanly* frozen weight does not move even with `weight_decay > 0`; but a parameter frozen *after* a backward pass still carries its stale `.grad`, and the optimizer will happily step and decay it. Freeze, then filter: the optimizer should never hold a tensor it has no business updating.
 
 Freezing is cheap insurance, not a guarantee. This floor makes you *prove* what moved: take a `snapshot()` of every tensor before training and diff afterwards with `changed_parameters()`. Trust nothing you have not diffed.
 
@@ -168,7 +168,7 @@ Quote the price of rusty dagger.
 
 **Epochs and overfitting.** SFT sets are small (Room 5's has 320 pairs; real ones run from thousands to a few hundred thousand). One to three epochs is the norm. Watch the **held-out response loss**: the mean loss over the supervised tokens of pairs the model did not train on. When it turns upward while the training loss keeps falling, the model is memorising answers. And read the generations: a loss can be low for a model that answers every question with the most common answer.
 
-**What "good" looks like here.** The pristine Chronicler scores about 6.3 nats per answer token after `--- Assistant:` (it has never seen the tag). Forty LoRA steps bring held-out answers to about 0.6. The floor is around 0.5, not 0: a price's digits are unpredictable from the question (every item appears in the ledger at twenty different prices), so four to five nats per answer are irreducible, spread over eleven characters. Know the floor before you chase the loss below it.
+**What "good" looks like here.** The pristine Chronicler scores about 6.3 nats per answer token after `--- Assistant:` (it has never seen the tag). Forty LoRA steps bring held-out answers to about 0.6. The floor is around 0.5, not 0: a price's digits are unpredictable from the question (each of the ledger's 29 items appears at between fifteen and twenty-eight different prices), so four to five nats per answer are irreducible, spread over eleven characters. Know the floor before you chase the loss below it.
 
 ### Preference optimisation: from RLHF to DPO
 
@@ -288,7 +288,7 @@ dungeon trial 8 room_6
 
 - **Phase 1:** `adapt_without_forgetting(model, tokenizer, new_text, old_text, steps, generator)`: in 25 steps, ledger loss ≤ 1.6 *and* chronicles loss within 0.35 of the pristine model. A naive full fine-tune at lr 1e-3 raises the chronicles loss by 2.3. LoRA alone raises it by 1.3. LoRA with half of every batch replayed from the chronicles raises it by 0.1 and reads the ledger at 1.3. Return a copy carrying `LoRALinear` adapters; the original must be untouched.
 - **Phase 2:** `AdapterSwitch`: `save_adapter` (r, alpha, targets, the LoRA tensors), `load_adapter` onto a pristine copy (inject first if needed), `disable_adapters` (logits equal the pristine Chronicler to 1e-6; the ledger is unreadable again), `enable_adapters` (the ledger is back). Runtime specialisation without touching a base weight.
-- **Phase 3:** `merge_and_export(model)`: a state dict a fresh `GPT(cfg)` loads with `strict=True`, whose logits match the adapted model to 1e-5. Work on a copy; the adapted model keeps its sigils.
+- **Phase 3:** `merge_and_export(model)`: a state dict a fresh `GPT(cfg)` loads with `strict=True`, whose logits match the adapted model to 1e-4 (float32 rounds `W x + B(A x)` and `(W + BA) x` differently; a wrong merge is off by 0.1 or more). Work on a copy; the adapted model keeps its sigils.
 - **Phase 4:** `FORGETTER_PROPHECY`: which of four strategies satisfy *both* constraints. Only two do.
 
 ```

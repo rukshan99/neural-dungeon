@@ -17,9 +17,9 @@ from floors.floor_09_library_of_echoes.assets.embedder import embed
 room = load_room(__file__, "room_4_retrieval_rite")
 catalogue = load_room(__file__, "room_2_card_catalogue")
 
-# Calibrated on the reference solution: the toy embedder puts the gold passage
-# at rank 1 for all 12 golden questions. The bar leaves room for a different but
-# still correct index implementation.
+# Calibrated on the reference solution: the toy embedder puts the gold passage in
+# the top 3 for all 12 golden questions (rank 1 for ten, rank 2 for two). The bar
+# leaves room for a different but still correct index implementation.
 RETRIEVAL_BAR = 10
 ANSWER_BAR = 10
 

@@ -180,6 +180,52 @@ def _guard_stub(fn, name):
         raise NotImplementedError(f"{name}() is unwritten")
 
 
+def _names_used_transitively(fn, depth: int = 3) -> set[str]:
+    """Every name ``fn`` calls or attribute it touches, following helpers defined in the room module.
+
+    A worker may delegate to a module-level helper (``_load_shard``, say); the trial
+    looks through up to ``depth`` levels of such helpers before judging.
+    """
+    used: set[str] = set()
+    seen: set = set()
+    frontier = [fn]
+    for _ in range(depth):
+        nxt = []
+        for f in frontier:
+            if f in seen:
+                continue
+            seen.add(f)
+            try:
+                called = scrutiny.names_called_in(f)
+                used |= called | scrutiny.attributes_used_in(f)
+            except (OSError, TypeError):
+                continue
+            for name in called:
+                helper = getattr(room, name, None)
+                if callable(helper) and getattr(helper, "__module__", None) == room.__name__:
+                    nxt.append(helper)
+        frontier = nxt
+    return used
+
+
+def test_every_rank_differentiates_its_own_shard_and_the_ddp_worker_delegates():
+    """Two ranks that each run the FULL batch all-reduce to the right answer for the wrong reason: the numbers cannot tell."""
+    _guard_stub(room.worker, "worker")
+    _guard_stub(room.ddp_worker, "ddp_worker")
+    for fn, name in ((room.worker, "worker"), (room.ddp_worker, "ddp_worker")):
+        assert "shard_batch" in _names_used_transitively(fn), (
+            f"{name}() never calls shard_batch. Each rank must differentiate only ITS slice of the batch: a rank that "
+            "runs the whole batch makes the all-reduce average world_size identical gradients, which is world_size "
+            "times the work for the one-process answer, and no data parallelism at all."
+        )
+    assert "all_reduce" in _names_used_transitively(room.worker), (
+        "worker() must reduce the gradients itself: dist.all_reduce(g, op=dist.ReduceOp.SUM) on every gradient, then divide by world_size."
+    )
+    assert _names_used_transitively(room.ddp_worker) & {"DistributedDataParallel", "DDP"}, (
+        "ddp_worker() must wrap the model in torch.nn.parallel.DistributedDataParallel and let it reduce during backward()."
+    )
+
+
 @needs_distributed
 def test_two_real_processes_all_reduce_to_the_full_batch_gradient(tmp_path):
     _guard_stub(room.worker, "worker")

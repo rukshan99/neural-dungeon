@@ -147,7 +147,7 @@ dungeon trial 9 room_1
 
 Ten thousand books, one question. Walk every aisle (`FlatIndex`, exact, counts every comparison), or ask the catalogue which shelves to visit (`KMeans` from scratch with k-means++, then `IVFIndex` that trains, assigns and probes `nprobe` shelves). `recall_at_k` measures what the shortcut costs.
 
-The trial demands that IVF with `nprobe == n_clusters` equals flat search exactly, and that with 2 of 16 shelves probed on 2000 clustered vectors it keeps recall@10 ≥ 0.85 while scanning under 40% of what flat scans (the reference does 1.00 and 13%). k-means inertia must never climb.
+The trial demands that IVF with `nprobe == n_clusters` equals flat search exactly, and that with 2 of 16 shelves probed on 2000 clustered vectors it keeps recall@10 ≥ 0.85 while scanning under 40% of what flat scans (the reference does 0.99 and 14%). k-means inertia must never climb.
 
 ```
 dungeon trial 9 room_2
@@ -167,7 +167,7 @@ dungeon trial 9 room_3
 
 Embed, search, prompt, generate, resolve. `Retriever` wraps your `FlatIndex` and the toy embedder; `build_prompt` produces the system instruction and the numbered sources; `parse_citations` reads `[n]`; `RAGPipeline.answer` returns the answer, the citations as chunk ids, and the sources.
 
-The model at the desk is a *faithful* `RuleLLM`: it answers a golden question only when the passage holding the answer is in its prompt, and cites the number it read it under. Twelve golden questions; the gold passage must be in your top 3 for at least ten of them (the reference gets all twelve, at rank 1).
+The model at the desk is a *faithful* `RuleLLM`: it answers a golden question only when the passage holding the answer is in its prompt, and cites the number it read it under. Twelve golden questions; the gold passage must be in your top 3 for at least ten of them (the reference gets all twelve: ten at rank 1, two at rank 2 behind a near-duplicate or a decoy).
 
 ```
 dungeon trial 9 room_4

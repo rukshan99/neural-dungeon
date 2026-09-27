@@ -11,8 +11,8 @@ from dungeon.trials import load_room
 
 room = load_room(__file__, "room_2_card_catalogue")
 
-# Calibrated on the reference solution with the data below: recall@10 was 1.00
-# and the inverted file scanned ~13% of what the flat index scanned.
+# Calibrated on the reference solution with the data below: recall@10 was 0.99
+# and the inverted file scanned ~14% of what the flat index scanned.
 IVF_RECALL_BAR = 0.85
 IVF_COMPARISON_FRACTION = 0.40
 

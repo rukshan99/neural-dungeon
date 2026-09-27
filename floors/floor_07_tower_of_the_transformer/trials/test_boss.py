@@ -32,7 +32,7 @@ PROMPT_IDS = torch.tensor([TOK.encode(PROMPT)], dtype=torch.long)
 
 # The two judges. Greedy decoding scores about 0.23 on diversity; sensible
 # sampling scores 0.85-0.95; uniform noise scores 1.0 on diversity but about 11
-# on NLL; temperature 2.0 lands at 1.2-2.0 NLL. The lines are drawn between.
+# on NLL; temperature 2.0 lands at 1.1-2.4 NLL per seed (the prophecy averages three). The lines are drawn between.
 DISTINCT_4_MIN = 0.6
 NLL_MAX = 1.0
 

@@ -144,6 +144,12 @@ def test_inject_replaces_the_sixteen_targets_in_order(chronicler):
         mod = model.get_submodule(name)
         assert isinstance(mod, room.LoRALinear), f"{name} should now be a LoRALinear, it is {type(mod).__name__}. Use setattr on the parent module."
     assert type(model.lm_head) is nn.Linear, "lm_head is not a target (and its weight is tied to wte): leave it alone."
+    again = room.inject_lora(model, r=4, alpha=8.0)
+    n_sigils = sum(isinstance(m, room.LoRALinear) for m in model.modules())
+    assert again == [] and n_sigils == 16, (
+        f"Injecting a second time wrapped {len(again)} more layers ({n_sigils} LoRALinear modules now). A LoRALinear is not an "
+        "nn.Linear and its frozen `.base` is not a target: never wrap a sigil in a sigil."
+    )
 
 
 def test_inject_leaves_the_forward_pass_untouched(chronicler):
@@ -209,6 +215,10 @@ def test_the_state_dict_holds_only_sigils(chronicler):
         f"Only lora_A / lora_B belong in the adapter state dict; found {[k for k in sd if 'lora_' not in k][:3]}."
     )
     assert tuple(sd["blocks.2.mlp.fc.lora_A"].shape) == (4, 128) and tuple(sd["blocks.2.mlp.fc.lora_B"].shape) == (512, 4)
+    live = model.blocks[2].mlp.fc.lora_A
+    assert not sd["blocks.2.mlp.fc.lora_A"].requires_grad and sd["blocks.2.mlp.fc.lora_A"].data_ptr() != live.data_ptr(), (
+        "The adapter state dict must hold detached CLONES: a view of the live parameter would change under you the moment training resumed."
+    )
     total_bytes = sum(v.numel() * v.element_size() for v in sd.values())
     full_bytes = sum(p.numel() * p.element_size() for p in chronicler[0].parameters())
     assert total_bytes < full_bytes / 20, "The adapter file should be a small fraction of the full checkpoint. That is why people ship adapters."

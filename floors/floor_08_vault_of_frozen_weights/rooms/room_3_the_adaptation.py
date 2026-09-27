@@ -7,8 +7,9 @@
 A fine-tuning loop is the pretraining loop with two changes: the weights start
 from the checkpoint, and the optimizer is handed **only the trainable
 parameters**. The second part is not cosmetic. AdamW keeps two moment tensors
-per parameter it is given; handing it frozen weights wastes memory and, with
-weight decay on, would even move them.
+per parameter it is given, so handing it frozen weights wastes memory; and a
+weight frozen after a backward pass still carries a stale ``.grad`` that the
+optimizer would step on. Give it nothing it must not touch.
 
     params = [p for p in model.parameters() if p.requires_grad]
     opt = torch.optim.AdamW(params, lr=lr)

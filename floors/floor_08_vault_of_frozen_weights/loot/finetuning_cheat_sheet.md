@@ -63,7 +63,7 @@ Combine them. LoRA + replay + a modest lr is the boring, effective default.
 | Quantised base (QLoRA) | cannot merge into 4-bit weights cleanly; merge into a full-precision copy | works as is |
 | Precision | merge in fp32 then cast; merging in bf16 loses adapter detail | n/a |
 
-Export for deployment: merge into a copy, `state_dict()`, load into a fresh model with `strict=True`, verify outputs match the adapted model to ~1e-5 before you delete anything.
+Export for deployment: merge into a copy, `state_dict()`, load into a fresh model with `strict=True`, verify outputs match the adapted model to float32 rounding (~1e-5 relative; a wrong merge is off by orders of magnitude more) before you delete anything.
 
 ## Supervised fine-tuning (SFT)
 
@@ -133,6 +133,6 @@ Load with `map_location="cpu"` (GPU checkpoints open on any machine), `strict=Tr
 ## Freezing checklist
 
 1. `for p in model.parameters(): p.requires_grad_(False)` **before** injecting adapters (they set their own factors trainable).
-2. Hand the optimizer `[p for p in model.parameters() if p.requires_grad]`. Not `model.parameters()`. AdamW's weight decay would shrink frozen weights, and its moments would waste 2x their memory.
+2. Hand the optimizer `[p for p in model.parameters() if p.requires_grad]`. Not `model.parameters()`. AdamW's moments would waste 2x the frozen weights' memory, and a weight frozen after a backward pass still carries a stale `.grad` the optimizer would step on (a `.grad` of `None` is skipped; do not rely on it).
 3. After training, diff against a snapshot. The only tensors that changed should be the ones you meant.
 4. Train in `train()`, evaluate in `eval()` under `torch.no_grad()`, and put the mode back.

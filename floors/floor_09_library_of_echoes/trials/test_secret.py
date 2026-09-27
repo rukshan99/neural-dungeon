@@ -139,6 +139,34 @@ def test_hybrid_search_returns_k_fused_results_best_first():
     )
 
 
+class _FixedDense:
+    """A stand-in dense index with a fixed ranking, so only the sparse side is under test."""
+
+    def __init__(self, ranking):
+        self.ranking = ranking
+
+    def search(self, _query_vec, k):
+        return [(doc_id, 1.0 - 0.1 * i) for i, doc_id in enumerate(self.ranking)][:k]
+
+
+def test_hybrid_lets_only_documents_that_match_a_query_term_vote_on_the_sparse_side():
+    bm25 = ledger.BM25().fit([["basilisk", "waits"], ["lich", "decays"], ["hydra", "grows"]], ["a", "b", "c"])
+    dense = _FixedDense(["b", "c", "a"])
+    fused = ledger.hybrid_search("basilisk", dense, bm25, k=3)
+    order = [doc_id for doc_id, _ in fused]
+    # Only "a" contains "basilisk", so the sparse ranking is ["a"] alone. With dense ["b", "c", "a"]:
+    # a: 1/61 + 1/63, b: 1/61, c: 1/62. Padding the sparse list with zero-score documents would
+    # hand b and c a second vote each and put b first.
+    assert order == ["a", "b", "c"], (
+        f"Expected ['a', 'b', 'c'], got {order}. Documents with a BM25 score of 0 match no query term; they must not "
+        "appear in the sparse ranking at all, or they vote for themselves in the fusion."
+    )
+    scores = dict(fused)
+    assert abs(scores["c"] - 1 / 62) < 1e-12 and abs(scores["b"] - 1 / 61) < 1e-12, (
+        f"b and c should carry ONE vote each (dense rank 1 and 2: 1/61, 1/62); got b={scores['b']:.6f}, c={scores['c']:.6f}."
+    )
+
+
 def test_hybrid_recall_is_no_worse_than_either_ledger_alone():
     dense = _dense_index()
     bm25 = ledger.BM25().fit(DOCS, IDS)

@@ -222,8 +222,12 @@ def test_phase_3_merge_and_export_loads_into_a_fresh_gpt(adapted, chronicler, co
         want = adapted(x)[0]
         got = fresh(x)[0]
     diff = (want - got).abs().max().item()
-    assert diff <= 1e-5, (
-        f"The merged plain GPT differs from the adapted model by up to {diff:.3e}. Merged weight = W + (alpha/r) * B @ A, same bias."
+    # Logits here are O(10) in float32, and W x + (B (A x)) versus (W + B A) x round differently:
+    # the reference lands near 8e-6 on this machine. A wrong merge (missing scaling, wrong
+    # transpose, bias dropped) is off by 1e-1 or more, so 1e-4 still tells the two apart.
+    assert diff <= 1e-4, (
+        f"The merged plain GPT differs from the adapted model by up to {diff:.3e} (allowed 1e-4). "
+        "Merged weight = W + (alpha/r) * B @ A, same bias."
     )
     ledger = _loss_on(fresh, tokenizer, corpora[1])
     assert ledger <= LEDGER_GOAL, f"The merged model should still read the ledger (<= {LEDGER_GOAL}); got {ledger:.2f}."

@@ -9,7 +9,7 @@ At each step the model produces logits `z` of shape `(V,)` for the next token. `
 Two things you can measure about the output:
 
 - **Diversity**: distinct n-grams / total n-grams (n = 4 is a good default). Loops score near 0; fresh text scores near 1.
-- **Fluency**: mean negative log-likelihood per token under the model (teacher-forced). Text the model finds likely scores low; noise scores high (about `ln V` for uniform noise).
+- **Fluency**: mean negative log-likelihood per token under the model (teacher-forced). Text the model finds likely scores low; noise scores high: a confident model gives uniform noise far more than `ln V` (the Chronicler gives it 11.2 nats per character against `ln 72 = 4.3`), because it is sure of the wrong thing at almost every position.
 
 Every strategy is a point on the diversity-fluency trade-off. Judge with both; either one alone is trivially gamed (greedy maxes fluency, noise maxes diversity).
 
@@ -68,9 +68,9 @@ Keep the *last* `block_size` tokens, not the first. The model then predicts from
 | greedy | 0.23 | 0.16 |
 | greedy + repetition penalty 1.3 | 0.89 | 0.16 |
 | greedy + no-repeat 4-gram | 1.00 | 0.50 |
-| temperature 0.7 + top-k 40 | 0.85-0.94 | 0.15 |
-| temperature 0.8 + top-p 0.9 + no-repeat 6-gram | 0.88-0.96 | 0.23-0.58 |
-| temperature 2.0 | 0.9-1.0 | 1.2-2.0 |
+| temperature 0.7 + top-k 40 | 0.79-0.97 | 0.14-0.31 |
+| temperature 0.8 + top-p 0.9 + no-repeat 6-gram | 0.88-0.94 | 0.29-0.58 |
+| temperature 2.0 | 0.9-1.0 | 1.1-2.4 |
 | uniform noise | 1.00 | 11.2 |
 
 Greedy is the most fluent and the least diverse. Noise is the most diverse and the least fluent. The middle rows are speech.

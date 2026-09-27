@@ -155,7 +155,7 @@ def replay_finetune_copy(
 # Four strategies, same steps, same seed, fine-tuned on the goblin ledger.
 # "forgets" means the chronicles loss rose by more than FORGETTING_THRESHOLD.
 # ---------------------------------------------------------------------------
-FORGETTING_THRESHOLD = 0.3
+FORGETTING_THRESHOLD = 0.35
 
 FORGETTING_PROPHECY: dict = {
     "forgets_most": "full_lr_1e-3",
