@@ -1,0 +1,5 @@
+`chunk_text` is a loop with one stopping rule: `end = min(start + size, len(text))`, emit `Chunk(doc_id, i, start, end, text[start:end])`, and if `end == len(text)` stop; otherwise `start += size - overlap`. Validate first: `size <= 0` or `overlap >= size` is a `ValueError`, empty text is `[]`. Never emit a chunk that begins after the text ends.
+---
+For sentences, get spans first: `re.finditer(r"\S[^.!?]*?[.!?]+(?=\s|$)", text)` yields a match per sentence; trim trailing whitespace from each span's end. Then pack greedily with a `(start, end)` for the chunk under construction: if `sentence_end - start <= max_chars`, extend `end`; otherwise flush the current chunk and start a new one at this sentence. Flush the last one after the loop. `text[start:end]` is the chunk text, so the offsets are exact by construction.
+---
+`dedupe`: `key = " ".join(chunk.text.lower().split())`; keep a `seen` set and append a chunk only when its key is new. `chunk_corpus`: `out.extend(chunk_text(p.text, size, overlap, doc_id=p.id))` for each passage, in order. Because `Chunk.id` is `f"{doc_id}#{index}"`, unique passage ids give unique chunk ids for free.

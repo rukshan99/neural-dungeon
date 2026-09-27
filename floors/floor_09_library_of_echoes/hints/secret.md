@@ -1,0 +1,5 @@
+`BM25.fit` precomputes everything `score` needs: a `Counter` per document, an array of document lengths, `avgdl`, and a document-frequency `Counter` built over `set(doc)` for each document (a term counts once per document). `idf(t) = math.log((N - df + 0.5) / (df + 0.5) + 1)`.
+---
+`score`: `norm = k1 * (1 - b + b * lengths / avgdl)` is an (N,) array computed once. For each query token that exists in the corpus, build the (N,) term-frequency vector and add `idf * tf * (k1 + 1) / (tf + norm)`. Repeated query tokens go round the loop twice. `reciprocal_rank_fusion`: a dict accumulating `1 / (k + rank)` with `rank` starting at 1, then `sorted(items, key=lambda kv: (-kv[1], str(kv[0])))`.
+---
+`hybrid_search`: `dense = [i for i, _ in dense_index.search(embed([query])[0], depth)]`; `scores = bm25.score(tokenize(query))`; `sparse = [bm25.ids[i] for i in np.argsort(-scores, kind="stable")[:depth] if scores[i] > 0]`; return `reciprocal_rank_fusion([dense, sparse])[:k]`, with `depth = depth or max(10, 2 * k)`.

@@ -1,0 +1,88 @@
+id = "floor_09"
+number = 9
+slug = "library_of_echoes"
+name = "The Library of Echoes"
+tagline = "Every book answers when you call to it. The echo is only as good as the question, the shelving, and your willingness to check the footnote."
+topics = ["embeddings and cosine similarity", "flat and inverted-file vector indexes", "recall@k", "chunking", "the RAG pipeline", "grounding and citation verification", "BM25 and hybrid search"]
+requires = []
+
+map = '''
+            ▼ stairs from the Vault of Frozen Weights
+            │
+   ┌────────┴────────┐     ┌──────────────────┐     ┌──────────────────┐
+   │  9.1 THE ECHO   │─────│  9.2 THE CARD    │─────│  9.3 THE SCRIBE'S│
+   │     METRIC      │     │    CATALOGUE     │     │      CHUNKS      │
+   └─────────────────┘     └──────────────────┘     └────────┬─────────┘
+                                                             │
+   ┌─────────────────┐     ┌──────────────────┐              │
+   │☠ THE LIBRARIAN'S│─────│ 9.4 THE RETRIEVAL│──────────────┘
+   │      DESK       │     │       RITE       │
+   └────────┬────────┘     └──────────────────┘
+            ┆  ◇ behind the desk, a second ledger: the Reranker's Ledger
+            ▼  stairs down to Floor 10
+'''
+
+[lines]
+room_cleared = "A book slides back onto its shelf. The echo was true."
+room_failed = "The shelves whisper back the wrong page. Check what you asked, and where you shelved it."
+boss_intro = "The Librarian looks up before you have finished the question. 'Third shelf. Page forty-two. You may thank me later.' There is no third shelf."
+boss_defeated = "The Librarian is still talking. Nobody is listening: every claim now comes with a footnote you have checked yourself."
+floor_cleared = "The Library is behind you. Below, someone is weaving prompts, and something small is hiding instructions inside them."
+
+[[rooms]]
+id = "room_1"
+name = "The Echo Metric"
+kind = "room"
+file = "rooms/room_1_echo_metric.py"
+trial = "trials/test_room_1.py"
+blurb = "Cosine similarity as one matrix product, eps-safe normalisation, and top-k selection with argpartition instead of a full sort."
+
+[[rooms]]
+id = "room_2"
+name = "The Card Catalogue"
+kind = "room"
+file = "rooms/room_2_card_catalogue.py"
+trial = "trials/test_room_2.py"
+blurb = "An exact flat index, k-means from scratch, and an inverted-file index that reads a tenth of the shelves. Measure the recall it gives up and the comparisons it saves."
+
+[[rooms]]
+id = "room_3"
+name = "The Scribe's Chunks"
+kind = "room"
+file = "rooms/room_3_scribes_chunks.py"
+trial = "trials/test_room_3.py"
+blurb = "Cut documents into chunks with exact offsets, exact overlap, sentence boundaries, deduplication and corpus-wide ids."
+
+[[rooms]]
+id = "room_4"
+name = "The Retrieval Rite"
+kind = "room"
+file = "rooms/room_4_retrieval_rite.py"
+trial = "trials/test_room_4.py"
+blurb = "Embed, search, prompt with numbered sources, generate, resolve [n] to chunk ids. A faithful mock librarian judges your retrieval."
+
+[[rooms]]
+id = "boss"
+name = "The Hallucinating Librarian"
+kind = "boss"
+file = "rooms/boss_hallucinating_librarian.py"
+trial = "trials/test_boss.py"
+blurb = "It answers everything, confidently, with a citation. Refuse when retrieval is weak and verify every citation against the source it names."
+
+[[rooms]]
+id = "secret"
+name = "The Reranker's Ledger"
+kind = "secret"
+file = "rooms/secret_rerankers_ledger.py"
+trial = "trials/test_secret.py"
+blurb = "BM25 from the formula, reciprocal rank fusion, and a hybrid search that reads both ledgers."
+
+[[loot]]
+name = "The RAG Checklist"
+file = "loot/rag_checklist.md"
+blurb = "Chunking, normalisation, index choice by scale, k and thresholds, prompt structure, citation verification, recall@k and grounding evals, and the failure modes that bite in production."
+
+[[loot]]
+name = "The Vector Index (portable)"
+file = "loot/vector_index.py"
+blurb = "Clean, dependency-free Flat, IVF, BM25 and reciprocal-rank-fusion implementations you can drop into a project."
