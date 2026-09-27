@@ -1,0 +1,5 @@
+LayerNorm treats every trailing vector separately: reduce over `dim=-1` with `keepdim=True`, so a `(B, T, D)` input gives `(B, T, 1)` means and variances that broadcast straight back. The variance is the biased one: `x.var(-1, keepdim=True, unbiased=False)`. Start every `nn.Module.__init__` with `super().__init__()`.
+---
+Parameters are `self.weight = nn.Parameter(torch.ones(ndim))` and `self.bias = nn.Parameter(torch.zeros(ndim))` (or `None` when `bias=False`). Forward: `(x - mean) / torch.sqrt(var + self.eps) * self.weight + self.bias`. Exact GELU is `0.5 * x * (1 + torch.erf(x / math.sqrt(2)))`; the tanh form is `0.5 * x * (1 + torch.tanh(math.sqrt(2 / math.pi) * (x + 0.044715 * x ** 3)))`.
+---
+MLP: `self.fc = nn.Linear(n_embd, 4 * n_embd, bias=bias)`, `self.proj = nn.Linear(4 * n_embd, n_embd, bias=bias)`, `self.dropout = nn.Dropout(dropout)`, and `forward` returns `self.dropout(self.proj(gelu(self.fc(x))))`. If the "wears the reference weights" trial fails on names, you called the layers something other than `fc` and `proj`.

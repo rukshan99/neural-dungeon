@@ -1,0 +1,5 @@
+`get_batch`: `ix = torch.randint(0, len(data) - block_size, (batch_size,), generator=generator)`, then `x = torch.stack([data[i : i + block_size] for i in ix])` and `y = torch.stack([data[i + 1 : i + 1 + block_size] for i in ix])`. `encode_corpus` is `torch.tensor(tokenizer.encode(text), dtype=torch.long)`.
+---
+`lr_schedule` has three branches, in this order: `if step < warmup: return lr_max * (step + 1) / warmup`; `if step >= total: return lr_min`; else `progress = (step - warmup) / (total - warmup)` and `return lr_min + 0.5 * (lr_max - lr_min) * (1 + math.cos(math.pi * progress))`.
+---
+`train`: `opt = torch.optim.AdamW(model.parameters(), lr=lr, betas=(0.9, 0.95), weight_decay=0.1)`; `warmup = max(1, steps // 10)`; each step: `for g in opt.param_groups: g["lr"] = lr_schedule(step, warmup, steps, lr, lr / 10)`, get a batch, `_, loss = model(x, y)`, `opt.zero_grad(set_to_none=True)`, `loss.backward()`, `torch.nn.utils.clip_grad_norm_(model.parameters(), grad_clip)`, `opt.step()`, `losses.append(loss.item())`. `estimate_loss`: decorate with `@torch.no_grad()`, remember `model.training`, `model.eval()`, average `batches` losses, `model.train(was_training)`.

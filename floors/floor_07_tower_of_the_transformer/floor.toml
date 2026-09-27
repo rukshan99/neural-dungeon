@@ -1,0 +1,104 @@
+id = "floor_07"
+number = 7
+slug = "tower_of_the_transformer"
+name = "The Tower of the Transformer"
+tagline = "Identical floors, stacked with care. A stairwell up the middle that nothing may replace, only add to. At the top, someone is speaking. Listen closer: repeating."
+topics = ["LayerNorm and GELU", "pre-norm residual blocks", "causal self-attention", "the GPT", "next-token cross-entropy", "training with AdamW, clipping and a cosine schedule", "decoding: greedy, temperature, top-k, top-p, repetition control"]
+requires = ["torch"]
+
+map = '''
+                        ☁  the Sovereign's balcony
+                   ┌────────┴────────┐
+                   │ ☠ THE STUTTERING│   "...was vast, vast, and usually
+                   │     SOVEREIGN   │    right. The chronicle records..."
+          ┌────────┴────────┬────────┴────────┐
+          │  7.5 THE VOICE  │  ◇ the reading  │
+          │    (decoding)   │  room: the      │
+          │                 │  Accumulated    │
+          ├─────────────────┤  Verse          │
+          │  7.4 THE        ├─────────────────┤
+          │    TRAINING     │                 │
+          ├─────────────────┤   the residual  │
+          │  7.3 THE TOWER  │   stairwell     │
+          ├─────────────────┤                 │
+          │  7.2 THE BLOCK  │   x = x + f(x)  │
+          ├─────────────────┤        ▲        │
+          │  7.1 THE NORM   │        │        │
+          │    AND THE      │        │        │
+          │   NONLINEARITY  │        │        │
+          └────────┬────────┴─────────────────┘
+                   ▲ stairs up from Floor 6
+'''
+
+[lines]
+room_cleared = "Another floor of the tower is sound. The stairwell climbs a little higher."
+room_failed = "The masons shake their heads. A block that does not match its neighbours will not bear weight."
+boss_intro = "At the top of the tower a voice is speaking. It is fluent, confident, and it has said this sentence four times already. It does not seem to know."
+boss_defeated = "The Sovereign pauses, then says something new. Then something else new. You have not changed a single weight; you changed how it chooses."
+floor_cleared = "The Tower of the Transformer is yours: built, trained, and speaking. Below, someone wants to teach it a goblin's accent without retraining it."
+
+[[rooms]]
+id = "room_1"
+name = "The Norm and the Nonlinearity"
+kind = "room"
+file = "rooms/room_1_norm_and_nonlinearity.py"
+trial = "trials/test_room_1.py"
+blurb = "Cut the bricks: LayerNorm from scratch (matching torch's gradients to 1e-6), exact and tanh GELU, and the D -> 4D -> D MLP."
+
+[[rooms]]
+id = "room_2"
+name = "The Block"
+kind = "room"
+file = "rooms/room_2_the_block.py"
+trial = "trials/test_room_2.py"
+blurb = "Causal self-attention with a fused qkv projection, then the pre-norm residual block. It must wear the reference's weights and agree to 1e-5."
+
+[[rooms]]
+id = "room_3"
+name = "The Tower"
+kind = "room"
+file = "rooms/room_3_the_tower.py"
+trial = "trials/test_room_3.py"
+blurb = "Embeddings, stacked blocks, final norm, tied head, GPT-2 init, cross-entropy loss. The Chronicler's checkpoint must fit and give the same loss."
+
+[[rooms]]
+id = "room_4"
+name = "The Training"
+kind = "room"
+file = "rooms/room_4_the_training.py"
+trial = "trials/test_room_4.py"
+blurb = "Shifted batches, warmup + cosine, AdamW with gradient clipping. Train a small tower on the chronicles: from 4.3 to below 2.8 in 120 steps."
+
+[[rooms]]
+id = "room_5"
+name = "The Voice"
+kind = "room"
+file = "rooms/room_5_the_voice.py"
+trial = "trials/test_room_5.py"
+blurb = "Greedy, temperature, top-k, top-p: one token from one row of logits. Then the loop that speaks, cropping the context to block_size."
+
+[[rooms]]
+id = "boss"
+name = "The Stuttering Sovereign"
+kind = "boss"
+file = "rooms/boss_stuttering_sovereign.py"
+trial = "trials/test_boss.py"
+blurb = "The pretrained Chronicler loops under greedy decoding. Beat it with decoding alone: n-gram statistics, repetition penalties, blocking, nucleus sampling, judged on diversity AND fluency."
+
+[[rooms]]
+id = "secret"
+name = "The Accumulated Verse"
+kind = "secret"
+file = "rooms/secret_accumulated_verse.py"
+trial = "trials/test_secret.py"
+blurb = "Gradient accumulation: k micro-batches must produce exactly the gradient of one k-times-larger batch, and the optimizer must step once per window."
+
+[[loot]]
+name = "The GPT Skeleton"
+file = "loot/gpt_skeleton.py"
+blurb = "One file, heavily annotated: the whole GPT, a training loop and a sampler. Copy it into your next project and delete the comments as you outgrow them."
+
+[[loot]]
+name = "Decoding Cheat Sheet"
+file = "loot/decoding_cheat_sheet.md"
+blurb = "Greedy, temperature, top-k, top-p, repetition penalty, no-repeat n-grams, beam search: what each does, when to use which, and the diversity-vs-fluency trade-off."

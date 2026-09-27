@@ -1,0 +1,5 @@
+`sample_next` starts with the greedy exit: `if temperature <= 0: return logits.argmax(dim=-1)`. Then `logits = logits / temperature`. Top-k: `kth = torch.topk(logits, min(top_k, logits.size(-1)), dim=-1).values[:, -1:]` and `logits = logits.masked_fill(logits < kth, float("-inf"))`.
+---
+Top-p works on the sorted distribution: `sorted_logits, sorted_idx = torch.sort(logits, descending=True, dim=-1)`; `probs = F.softmax(sorted_logits, -1)`; `cum = probs.cumsum(-1)`; `remove = (cum - probs) >= top_p` (the mass *before* each token); `sorted_logits = sorted_logits.masked_fill(remove, float("-inf"))`; put them back with `torch.full_like(logits, float("-inf")).scatter(-1, sorted_idx, sorted_logits)`. Finish with `torch.multinomial(F.softmax(logits, -1), 1, generator=generator).squeeze(-1)`.
+---
+`generate` under `@torch.no_grad()`: `for _ in range(max_new_tokens): idx_cond = idx[:, -model.cfg.block_size:]; logits, _ = model(idx_cond); next_id = sample_next(logits[:, -1, :], **sampling); idx = torch.cat([idx, next_id[:, None]], dim=1)`; return `idx`. The fixed-greedy-line trial fails only if you feed the wrong position's logits or crop from the wrong end.
