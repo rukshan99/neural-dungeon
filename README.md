@@ -24,7 +24,8 @@ You are a software engineer. You can ship. You have used an LLM API and maybe tr
 ```bash
 git clone https://github.com/rukshan99/neural-dungeon.git
 cd neural-dungeon
-python -m venv .venv && source .venv/bin/activate     # Windows: .venv\Scripts\activate
+python3 -m venv .venv && source .venv/bin/activate    # Windows: .venv\Scripts\activate
+# (some systems only have `python3`, not `python` - use whichever runs Python 3.11+)
 pip install -e .
 dungeon doctor
 dungeon enter 0

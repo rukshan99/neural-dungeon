@@ -13,7 +13,7 @@ Thank you for wanting to dig. This guide covers fixing rooms, tuning trials and,
 ## Setup for development
 
 ```bash
-python -m venv .venv && source .venv/bin/activate
+python3 -m venv .venv && source .venv/bin/activate
 pip install -e ".[dev]"
 pip install torch --index-url https://download.pytorch.org/whl/cpu
 ```
