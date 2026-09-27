@@ -1,0 +1,89 @@
+id = "floor_13"
+number = 13
+slug = "the_watchtower"
+name = "The Watchtower"
+tagline = "The dungeon is deployed. Somebody has to watch it, day and night, and know the difference between a bad day and a changed world."
+topics = ["tracing and spans", "drift detection (PSI, KS, JS, embeddings)", "canary releases and unpaired bootstrap comparison", "guardrails, ramps and rollback", "alerting with hysteresis and error budgets", "label delay and sequential testing"]
+requires = []
+
+map = '''
+            ☀ the sky. Nothing above; the watch simply goes on.
+            ┆  ◇ a lamp on the parapet: the Sequential Sentinel
+   ┌────────┴────────┐     ┌──────────────────┐     ┌──────────────────────┐
+   │ ☠ THE SILENT    │─────│ 13.4 THE ALARM   │─────│ 13.3 THE CANARY      │
+   │     DRIFT       │     │      BELL        │     │        CAGE          │
+   └─────────────────┘     └──────────────────┘     └──────────┬───────────┘
+                                                               │
+   ┌─────────────────┐     ┌──────────────────┐                │
+   │ 13.1 THE LEDGER │─────│ 13.2 THE DRIFT   │────────────────┘
+   │    OF SPANS     │     │      GLASS       │
+   └────────┬────────┘     └──────────────────┘
+            │  ▲ the service lift: up from the Engine Room (Floor 12),
+            │  ┆ past twelve floors and the surface, to the tower
+            ■  Floor 12, the bottom. The lift starts there.
+'''
+
+[lines]
+room_cleared = "A gauge on the wall settles into its true reading. The watch goes on."
+room_failed = "The keeper taps the ledger. That number is not the number you think it is."
+boss_intro = "Nothing happens. The gauges read as they read yesterday. The accuracy is fine. The accuracy was fine last week. Somewhere below the tower the world has moved a hair's breadth, as it did yesterday, as it will tomorrow, and the model has not been told."
+boss_defeated = "The glass clouded before the bell rang; the cage decided on numbers, not nerves; the ledger says why. The Silent Drift is still moving. Now you can see it move."
+floor_cleared = "The Watchtower is yours. There is no floor above the sky, only the next day's traffic. You know how to watch it."
+
+[[rooms]]
+id = "room_1"
+name = "The Ledger of Spans"
+kind = "room"
+file = "rooms/room_1_ledger_of_spans.py"
+trial = "trials/test_room_1.py"
+blurb = "A tracer with an injected clock: spans that nest by a stack, LLM calls with tokens and cost, tools with status, errors recorded and re-raised, JSON with a fixed field order, and redaction."
+
+[[rooms]]
+id = "room_2"
+name = "The Drift Glass"
+kind = "room"
+file = "rooms/room_2_the_drift_glass.py"
+trial = "trials/test_room_2.py"
+blurb = "PSI on quantile bins, the two-sample KS distance, Jensen-Shannon for tool-call mixes, centroid drift for embeddings, and a monitor that stays quiet until the world moves."
+
+[[rooms]]
+id = "room_3"
+name = "The Canary Cage"
+kind = "room"
+file = "rooms/room_3_the_canary_cage.py"
+trial = "trials/test_room_3.py"
+blurb = "Hash requests into arms, compare arms with an unpaired bootstrap, fail guardrails closed, write the promote/rollback/extend rule once, and ramp 1% to 100%."
+
+[[rooms]]
+id = "room_4"
+name = "The Alarm Bell"
+kind = "room"
+file = "rooms/room_4_the_alarm_bell.py"
+trial = "trials/test_room_4.py"
+blurb = "Rolling windows with nearest-rank percentiles, a threshold with hysteresis that rings once, an alert manager with a cooldown and resolved events, and error-budget arithmetic."
+
+[[rooms]]
+id = "boss"
+name = "The Silent Drift"
+kind = "boss"
+file = "rooms/boss_the_silent_drift.py"
+trial = "trials/test_boss.py"
+blurb = "Sixty days of traffic; the world moves a hair each day from day 20 and labels arrive five days late. See it in the inputs, canary the retrained model, promote on evidence, keep the ledger, and prophesy."
+
+[[rooms]]
+id = "secret"
+name = "The Sequential Sentinel"
+kind = "secret"
+file = "rooms/secret_sequential_sentinel.py"
+trial = "trials/test_secret.py"
+blurb = "Wald's sequential probability ratio test on discordant pairs: peek every day and still hold your false-positive rate, and stop early when the lift is real."
+
+[[loot]]
+name = "Monitoring Checklist"
+file = "loot/monitoring_checklist.md"
+blurb = "What to log per request, what to watch and at which percentile, drift signals and thresholds, the canary/ramp/rollback recipe, alert hygiene, the label-delay problem, and an incident checklist."
+
+[[loot]]
+name = "Watchtower Kit"
+file = "loot/watchtower_kit.py"
+blurb = "An importable, dependency-free copy of the tower's tools: Tracer, PSI/KS/JS/embedding drift, hashed canary assignment, unpaired bootstrap comparison, guardrails and the decision rule, hysteresis alerts, error budgets."
