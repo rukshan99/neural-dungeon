@@ -1,0 +1,83 @@
+id = "floor_06"
+number = 6
+slug = "hall_of_a_thousand_heads"
+name = "The Hall of a Thousand Heads"
+tagline = "A thousand carved heads line the hall. Each one listens to every voice at once and weighs them. A veil keeps them from hearing what has not yet been said."
+topics = ["scaled dot-product attention", "softmax over keys and the sqrt(d_k) scaling", "causal and padding masks", "multi-head attention", "leakage detection", "online-softmax (tiled) attention"]
+requires = ["torch"]
+
+map = '''
+            ▼ stairs from Floor 5
+            │
+   ┌────────┴────────┐     ┌──────────────────┐     ┌──────────────────────┐
+   │  6.1 THE SINGLE │─────│  6.2 THE VEIL OF │─────│  6.3 THE THOUSAND    │
+   │      GAZE       │     │     CAUSALITY    │     │        HEADS         │
+   └─────────────────┘     └──────────────────┘     └──────────┬───────────┘
+                                                               │
+   ┌─────────────────┐     ┌──────────────────┐                │
+   │ ☠ THE ORACLE'S  │─────│  6.4 THE PADDING │────────────────┘
+   │      DAIS       │     │       VEIL       │
+   └────────┬────────┘     └──────────────────┘
+            ┆  ◇ a slit behind the dais: the Tiled Gaze
+            ▼  stairs down to Floor 7
+'''
+
+[lines]
+room_cleared = "One more carved head turns to look at you. It approves."
+room_failed = "The heads murmur. Something was heard that should not have been."
+boss_intro = "At the far end of the hall, on a dais, sits the Oracle. It knows the next word before you say it. It has always known. Ask yourself how."
+boss_defeated = "Unveiled, the Oracle is a head like any other. It weighs the past, because the past is all it can hear now."
+floor_cleared = "The Hall falls silent. Below, someone is stacking heads into a tower."
+
+[[rooms]]
+id = "room_1"
+name = "The Single Gaze"
+kind = "room"
+file = "rooms/room_1_the_single_gaze.py"
+trial = "trials/test_room_1.py"
+blurb = "One head, every voice. Scores, a softmax over keys, the sqrt(d) scaling, a mask before the softmax. Then a prophecy about peaks."
+
+[[rooms]]
+id = "room_2"
+name = "The Veil of Causality"
+kind = "room"
+file = "rooms/room_2_veil_of_causality.py"
+trial = "trials/test_room_2.py"
+blurb = "A lower-triangular veil so no head hears the future. Then write the detector that proves it, by perturbing the future and watching the past."
+
+[[rooms]]
+id = "room_3"
+name = "The Thousand Heads"
+kind = "room"
+file = "rooms/room_3_the_thousand_heads.py"
+trial = "trials/test_room_3.py"
+blurb = "Split one gaze into many heads, merge them, project. Your module must agree with nn.MultiheadAttention to the fifth decimal."
+
+[[rooms]]
+id = "room_4"
+name = "The Padding Veil"
+kind = "room"
+file = "rooms/room_4_the_padding_veil.py"
+trial = "trials/test_room_4.py"
+blurb = "Scrolls of unequal length share a batch. Veil the blank parchment, combine it with the causal veil, and never produce a NaN."
+
+[[rooms]]
+id = "boss"
+name = "The Oracle Who Peeks"
+kind = "boss"
+file = "rooms/boss_oracle_who_peeks.py"
+trial = "trials/test_boss.py"
+blurb = "Four oracles claim to be causal. Unmask the cheats empirically, position by position, then build one that cannot cheat."
+
+[[rooms]]
+id = "secret"
+name = "The Tiled Gaze"
+kind = "secret"
+file = "rooms/secret_the_tiled_gaze.py"
+trial = "trials/test_secret.py"
+blurb = "Attention that never carves the (T, T) matrix: walk the keys in blocks with a running max and a running sum."
+
+[[loot]]
+name = "Codex of Attention Shapes"
+file = "loot/attention_shapes_cheat_sheet.md"
+blurb = "Every tensor's shape through multi-head attention, the mask conventions (including torch's inverted one), the sqrt(d) argument, the nn.MultiheadAttention weight mapping, the leak-test recipe and the online-softmax recurrence."
