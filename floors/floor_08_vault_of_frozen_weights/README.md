@@ -10,10 +10,16 @@
    │      DOOR       │     │      SIGIL       │     │                      │
    └─────────────────┘     └──────────────────┘     └──────────┬───────────┘
                                                                │
-   ┌─────────────────┐     ┌──────────────────┐                │
-   │ ☠ THE FORGETTER │─────│  8.4 THE         │────────────────┘
-   │   ANTECHAMBER   │     │     FORGETTING   │
-   └────────┬────────┘     └──────────────────┘
+   ┌─────────────────┐     ┌──────────────────┐     ┌──────────┴───────────┐
+   │  8.6 THE        │─────│  8.5 THE SCRIBE'S│─────│  8.4 THE FORGETTING  │
+   │  PREFERENCE     │     │     INSTRUCTION  │     │                      │
+   │     SCALE       │     └──────────────────┘     └──────────────────────┘
+   └────────┬────────┘
+            │
+   ┌────────┴────────┐
+   │ ☠ THE FORGETTER │
+   │   ANTECHAMBER   │
+   └────────┬────────┘
             ┆  ◇ a cold draught: the Replay Well
             ▼  stairs down to Floor 9
 ```
@@ -24,7 +30,9 @@ Your job is the job of almost every applied ML engineer today. You did not train
 
 That last constraint is the whole floor. Fine-tuning is easy. Fine-tuning *without forgetting* is engineering. The boss down here is what happens when you skip it.
 
-**You will learn:** checkpoints and `requires_grad` · freezing · LoRA from scratch, its arithmetic and its merge · the fine-tuning loop · measuring catastrophic forgetting · the three mitigations (parameter-efficient tuning, lower learning rate, replay) · adapter save/load/switch/merge · elastic weight consolidation (secret).
+Two rooms past the Forgetting go where fine-tuning goes next. Supervised fine-tuning turns a text-continuer into a question-answerer with nothing more than a template and a mask. Direct preference optimisation turns two answers and a preference into a gradient, with a frozen copy of the model standing guard.
+
+**You will learn:** checkpoints and `requires_grad` · freezing · LoRA from scratch, its arithmetic and its merge · the fine-tuning loop · measuring catastrophic forgetting · the three mitigations (parameter-efficient tuning, lower learning rate, replay) · supervised fine-tuning: chat templates, loss masking with `ignore_index`, held-out response loss · direct preference optimisation: implicit rewards, β, the reference model · adapter save/load/switch/merge · elastic weight consolidation (secret).
 
 **You need:** PyTorch (CPU is plenty). `dungeon.artifacts.tiny_gpt` provides `load_pretrained()`, the `GPT` class and `read_corpus("chronicles" | "ledger")`. Every trial on this floor runs in well under a minute; most in a few seconds.
 
@@ -139,6 +147,55 @@ The boss adds a fourth escape that is not a mitigation but a change of architect
 
 The secret room adds a fifth, **elastic weight consolidation** (Kirkpatrick et al., 2017): estimate how much each weight mattered to the old task with the diagonal Fisher information `F_i ≈ mean over old batches of (∂L/∂w_i)²`, then add `(λ/2) Σ F_i (w_i − w*_i)²` to the new loss. Important weights become stiff springs anchored at their old values `w*`; unimportant ones stay free. Using true labels for the gradients gives the "empirical Fisher", which is what most implementations do. On this model the Fisher averages about 1e-6 per weight, so λ has to be around 1e5 before the spring competes with the task loss.
 
+### Supervised fine-tuning is pretraining on dialogues you formatted
+
+A pretrained language model continues text. To make it *answer*, you do not need a new objective: render each (question, answer) pair as text with a fixed **chat template** and keep training with next-token cross-entropy. Real tokenizers reserve special tokens for the roles (`<|im_start|>user` in ChatML, `[INST]` in Llama 2, `<|start_header_id|>` in Llama 3) and ship the template with the tokenizer; `apply_chat_template(..., add_generation_prompt=True)` appends the empty assistant header, which is exactly what Room 5's `render_prompt` does. The Chronicler's 72-character alphabet has no special tokens, no `#` and no `?`, so Room 5's template is plain text and its questions end in a full stop:
+
+```
+--- User:
+Quote the price of rusty dagger.
+
+--- Assistant:
+12 copper
+
+```
+
+**The template is part of the model.** It learned p(answer | exactly this prefix). Render the prompt differently at inference (a missing blank line, `User:` without the dashes) and you are sampling from a context the model has never seen. Keep one function that renders, and call it in both places.
+
+**Loss masking.** Every token of the rendered example is an input, but you usually only want to *learn* the answer. Build the labels as the next token, then set the label of every position whose target is a prompt token to `-100`; `F.cross_entropy(..., ignore_index=-100)` skips those positions and averages over the rest. `-100` is PyTorch's default `ignore_index`, which is why it is the convention everywhere. Without the mask the gradient also learns to write user questions, which the deployed model is never asked to do, and the reported loss averages two different tasks. Some recipes do train on prompts when data is scarce; do it on purpose, not by accident.
+
+**Padding versus packing.** Examples differ in length. *Padding* right-pads each batch to its longest row and labels the pads `-100`; with a causal model a pad *after* the real tokens affects nothing that is scored, so the loss needs no attention mask, but the pads still cost compute. *Packing* concatenates examples into fixed-length blocks separated by an end-of-text token and wastes nothing, at the cost of examples that can attend to each other across the boundary unless the attention mask is made block-diagonal. Small SFT runs pad; large ones pack.
+
+**Epochs and overfitting.** SFT sets are small (Room 5's has 320 pairs; real ones run from thousands to a few hundred thousand). One to three epochs is the norm. Watch the **held-out response loss**: the mean loss over the supervised tokens of pairs the model did not train on. When it turns upward while the training loss keeps falling, the model is memorising answers. And read the generations: a loss can be low for a model that answers every question with the most common answer.
+
+**What "good" looks like here.** The pristine Chronicler scores about 6.3 nats per answer token after `--- Assistant:` (it has never seen the tag). Forty LoRA steps bring held-out answers to about 0.6. The floor is around 0.5, not 0: a price's digits are unpredictable from the question (every item appears in the ledger at twenty different prices), so four to five nats per answer are irreducible, spread over eleven characters. Know the floor before you chase the loss below it.
+
+### Preference optimisation: from RLHF to DPO
+
+SFT teaches a model to answer. It does not teach it which of two answers is better, and "better" (correct, on topic, honest, concise) is easier to *compare* than to *write*. Post-training therefore continues with **preference data**: a prompt x, a chosen answer y_w and a rejected answer y_l.
+
+**RLHF** (Christiano et al., 2017; Ouyang et al., 2022 for InstructGPT) fits a **reward model** r(x, y) to the comparisons with the Bradley-Terry likelihood p(y_w ≻ y_l) = σ(r(x, y_w) − r(x, y_l)), then optimises the policy π with PPO to maximise E[r(x, y)] − β·KL(π ‖ π_ref). The KL term against the frozen starting model π_ref keeps the policy from wandering into the reward model's blind spots. It works and it is heavy: a second model, sampling from the policy during training, and PPO's own hyper-parameters.
+
+**DPO** (Rafailov et al., 2023) observes that the KL-regularised objective has a closed-form optimum, π*(y|x) ∝ π_ref(y|x) · exp(r(x, y)/β), which can be solved for the reward: r(x, y) = β · log(π*(y|x) / π_ref(y|x)) + β · log Z(x). Substitute that into the Bradley-Terry likelihood and the partition function Z(x) cancels in the difference, leaving a loss on the policy alone:
+
+```
+L = −log σ( β·[log π(y_w|x) − log π_ref(y_w|x)]  −  β·[log π(y_l|x) − log π_ref(y_l|x)] )
+```
+
+Each bracket times β is an **implicit reward**. The sequence log-probabilities are sums of per-token log-probs over the answer positions (Room 6's `sequence_logprob`; the prompt is conditioned on, never scored). The gradient weighs every pair by σ(r̂_l − r̂_w): the pairs the implicit reward currently gets wrong push hardest. No reward model, no sampling, no PPO: two forward passes per pair through the policy, two through the frozen reference, and a binary-classification loss.
+
+**What β does.** It is the KL coefficient of the original objective, and in the loss it scales the logit. For the same log-ratio margin, a larger β saturates the sigmoid sooner and stops the gradient: a shorter leash to the reference. A smaller β lets the policy drift further before the loss is satisfied. 0.1 is the common default (TRL's `DPOConfig` uses it).
+
+**Why the reference model.** Without it the loss would only need log π(y_w) − log π(y_l) to grow, and the cheapest way is to drive π(y_l) toward zero and spend the freed probability anywhere at all. The reference anchors both terms: rewards are measured as *change from where you started*, so at step 0 every reward is exactly 0 and the loss is exactly ln 2 = 0.693. Room 6's trial checks that number, and it catches a subtle bug: the policy must run with **dropout off**. The loss is a difference of log-probabilities between two models, and dropout noise in the policy alone reads as reward. TRL's `DPOConfig` has `disable_dropout=True` for exactly this reason.
+
+DPO dashboards log **reward accuracy**: the fraction of pairs whose implicit chosen reward beats the rejected one. It starts at 0 (every pair is a tie) and climbs. Do not confuse it with the policy's raw preference: the pristine Chronicler already assigns the true continuation a higher log-prob than a pasted-in one for every pair in Room 6, so that number is 100% before training and says nothing.
+
+**Known failure modes.**
+
+1. *Over-optimisation and likelihood displacement.* DPO trains a margin, not an absolute. In practice the log-probability of the *chosen* answers often falls too, just less than the rejected ones, and the freed mass goes to sequences that appear in neither. Room 6 shows it in miniature: the chosen continuations' summed log-prob drops from about −4 to between −6 and −15 in thirty steps, depending on the seed, while the margin grows. Run long enough and the policy is confidently wrong about text the reference was right about. Fixes add a term that keeps the chosen log-prob up (DPO-Positive), or stop early and read generations.
+2. *Length bias.* Summed log-probs grow with length, so a longer answer has more room for margin, and DPO-trained models drift verbose (RLHF ones too). Length-normalised objectives (SimPO) and explicit length penalties exist; the boring fix is to compare answer lengths before and after.
+3. *Data quality dominates.* The model learns exactly the contrast the pairs contain. Room 6's rejected answers are real chronicles text pasted in the wrong place, so the policy learns "stay on topic" and nothing about style or correctness. Noisy labels, pairs that differ in irrelevant ways, or rejected answers that are trivially bad teach the wrong feature or none. Better pairs beat a better loss.
+
 ### Checkpoint hygiene
 
 Save everything needed to *resume*, not just to *run*: the `state_dict`, the config, the tokenizer (or its vocabulary), the optimizer state if you may continue training, the step count and learning-rate schedule position, and the RNG seed. Load with `map_location` so a GPU checkpoint opens on a CPU box. Use `strict=True` and treat any missing or unexpected key as a bug in your understanding of the architecture. For adapters, save the LoRA tensors and the LoRA config (`r`, `alpha`, targets) together; a bag of tensors without `r` cannot be re-injected. The cheat sheet in the loot has the checklist.
@@ -147,7 +204,7 @@ Save everything needed to *resume*, not just to *run*: the `state_dict`, the con
 
 ## Rooms
 
-Run `dungeon enter 8` to see your progress. Each room is a file in `rooms/`. Replace every `raise NotImplementedError` with code, then run that room's trial. Rooms build on each other: 3 imports 2, 4 imports 2 and 3, the boss imports 2 and 3.
+Run `dungeon enter 8` to see your progress. Each room is a file in `rooms/`. Replace every `raise NotImplementedError` with code, then run that room's trial. Rooms build on each other: 3 imports 2, 4 imports 2 and 3, the boss imports 2 and 3. Rooms 5 and 6 stand alone, but their trials draw the sigils with Room 2's `inject_lora`, so finish Room 2 first.
 
 ### 8.1 The Vault Door — `rooms/room_1_the_vault_door.py`
 
@@ -189,6 +246,28 @@ Then **the Prophecy of Forgetting**, to fill in *before* running: which of the f
 dungeon trial 8 room_4
 ```
 
+### 8.5 The Scribe's Instruction — `rooms/room_5_the_scribes_instruction.py`
+
+A scribe's desk: questions on the left, answers on the right, and a Chronicler that only continues text. A plain-text chat template (`USER_TAG`, `ASSISTANT_TAG`, `END_TAG`; `render_chat`, `render_prompt`), `build_sft_example` (next-token labels over the answer, `-100` over the prompt, truncation from the prompt side so the answer survives), `collate_sft` (right-padding), `sft_loss` and `supervised_fraction`, `make_instruction_pairs` (price questions read off the ledger), `finetune_sft`, `evaluate_sft` (held-out loss per answer token) and `answer` (greedy, stops at the end tag).
+
+The trial checks that every character of your tags is in the Chronicler's alphabet, that the labels are `-100` exactly over the prompt and the padding, that `sft_loss` equals a hand-computed cross-entropy over the supervised positions only, and that forty LoRA steps (r=8, lr 3e-3) bring the held-out loss per answer token from ~6.3 to under 1.0 (reference ~0.6) while the base stays frozen. Then it asks the scribe three training questions and expects answers shaped like prices: digits and a unit.
+
+Try afterwards, outside the trial: train once more without the mask (labels everywhere) and compare the held-out *answer* loss and the generations. Make the prediction first: the same forty steps now also spend gradient on writing questions.
+
+```
+dungeon trial 8 room_5
+```
+
+### 8.6 The Preference Scale — `rooms/room_6_the_preference_scale.py`
+
+A brass balance: the true continuation on one pan, a passage lifted from elsewhere in the chronicles on the other. `sequence_logprob` (summed log-probs over the answer positions), `dpo_loss` (`−logsigmoid(β · (chosen margin − rejected margin))` plus the two implicit rewards), `make_preference_pairs`, `frozen_reference`, `dpo_step`, `train_dpo` (dropout off, reference read-only) and `evaluate_preferences`.
+
+The trial checks that the loss is exactly ln 2 when nothing has moved, falls as the chosen margin grows, scales with β, and pushes chosen up and rejected down. Then thirty DPO steps on LoRA adapters (β 0.1, lr 1e-3, batches of 8 pairs) must raise the mean implicit reward margin on 64 held-out pairs above 0.5 (reference 1.4–1.9) with reward accuracy above 65% (reference 80–92%), while the reference is bit-for-bit unchanged, the chronicles loss rises by at most 0.5 (reference 0.06–0.17) and the chosen log-prob falls by at most 20 nats (reference 2–11; that fall is the likelihood displacement from the lore, live).
+
+```
+dungeon trial 8 room_6
+```
+
 ---
 
 ## Boss: The Catastrophic Forgetter
@@ -226,10 +305,10 @@ dungeon trial 8 --secret
 
 ## Loot
 
-Clear the four rooms and defeat the Forgetter to unlock:
+Clear the six rooms and defeat the Forgetter to unlock:
 
 - **LoRA From Scratch** — `loot/lora_from_scratch.py`. A clean, commented `LoRALinear` + `inject_lora` + `merge_lora` you can drop into any PyTorch project.
-- **Fine-Tuning Cheat Sheet** — `loot/finetuning_cheat_sheet.md`. Full FT vs LoRA vs adapters vs prompt tuning; the r/alpha rule of thumb; which modules to target; the forgetting mitigations; merge vs runtime adapters; checkpoint hygiene.
+- **Fine-Tuning Cheat Sheet** — `loot/finetuning_cheat_sheet.md`. Full FT vs LoRA vs adapters vs prompt tuning; the r/alpha rule of thumb; which modules to target; the forgetting mitigations; SFT templates and masking; the DPO loss and its knobs; merge vs runtime adapters; checkpoint hygiene.
 
 ## Stuck?
 

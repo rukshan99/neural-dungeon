@@ -65,6 +65,58 @@ Combine them. LoRA + replay + a modest lr is the boring, effective default.
 
 Export for deployment: merge into a copy, `state_dict()`, load into a fresh model with `strict=True`, verify outputs match the adapted model to ~1e-5 before you delete anything.
 
+## Supervised fine-tuning (SFT)
+
+Pretraining continued on dialogues rendered with a fixed template. Same loss, three new habits.
+
+**Template.** One function renders a conversation; the same function renders the inference prompt (ending with the empty assistant header, `add_generation_prompt=True` in HF terms). Never hand-write the prefix at inference. On this floor: `--- User:\n{q}\n\n--- Assistant:\n{a}\n\n`.
+
+**Masking.** Labels are the next token; positions whose target is a prompt token get `-100`, and so does every pad and the last position.
+
+```python
+ids    = prompt_ids + response_ids            # response_ids includes the end tag
+labels = [-100] * len(ids)
+for t in range(len(ids) - 1):
+    if t + 1 >= len(prompt_ids):               # the TARGET is a response token
+        labels[t] = ids[t + 1]
+loss = F.cross_entropy(logits.reshape(-1, V), labels.reshape(-1), ignore_index=-100)
+```
+
+`-100` is PyTorch's default `ignore_index`. Check `supervised_fraction(labels)` once: if it is 1.0 you forgot the mask; if it is 0.0 you shifted the wrong way.
+
+| Choice | Do | Because |
+|---|---|---|
+| Padding side | right, labels `-100` | causal attention cannot see a pad that comes after the real tokens |
+| Truncation | from the prompt side, keep the answer whole (or drop the example) | a headless answer with no end tag teaches the model to never stop |
+| Padding vs packing | pad for small runs; pack (concatenate with EOS, block-diagonal mask if you can) for large ones | packing wastes no compute but lets examples attend across boundaries |
+| Epochs | 1-3 | small sets memorise fast |
+| Evaluation | held-out loss **per answer token** + read the generations | training loss on a small set says nothing; a low loss can hide "answers everything the same way" |
+| Loss floor | estimate it | unpredictable content (a price's digits) puts a floor well above 0 |
+
+Prompt loss on purpose is a valid choice on tiny datasets; by accident it is a bug.
+
+## Preference optimisation (DPO)
+
+Chosen `y_w`, rejected `y_l`, a frozen reference `pi_ref`, and no reward model:
+
+```
+r_hat(y) = beta * ( log pi(y|x) - log pi_ref(y|x) )              implicit reward
+L        = -log sigmoid( r_hat(y_w) - r_hat(y_l) )               mean over pairs
+```
+
+`log pi(y|x)` is the **sum** of token log-probs over the answer positions only. At step 0 the policy is the reference, every `r_hat` is 0 and the loss is `ln 2 = 0.693`; if your first step is not, dropout is on or the adapters did not start at zero.
+
+| Knob | Default | Effect |
+|---|---|---|
+| `beta` | 0.1 | scales the logit; larger = shorter leash to the reference (saturates sooner), smaller = more drift |
+| lr | 10x lower than SFT (5e-7 to 5e-6 on LLMs; 1e-3 for LoRA on the 800K Chronicler) | DPO is sensitive; a big lr collapses the chosen log-prob |
+| dropout | **off** for policy and reference | the loss is a difference of log-probs; noise in one side reads as reward |
+| steps / epochs | 1 epoch, often less | over-optimisation shows up fast |
+
+What to log: loss, mean implicit reward margin, **reward accuracy** (fraction of pairs with `r_hat(y_w) > r_hat(y_l)`; starts at 0), mean chosen and rejected log-probs (both often fall: watch the chosen one), old-data loss, answer length.
+
+Failure modes: (1) *likelihood displacement*: the chosen log-prob falls too and probability mass leaves the data entirely; stop early or use a variant that anchors the chosen log-prob (DPO-Positive). (2) *Length bias*: summed log-probs favour long answers; compare lengths before/after or use a length-normalised objective (SimPO). (3) *Data*: the model learns exactly the contrast the pairs contain, so pairs that differ in irrelevant ways teach irrelevant features. RLHF with a reward model + PPO is the heavier alternative; the reference-model KL term plays the same anchoring role there.
+
 ## Checkpoint hygiene
 
 Save together, always:

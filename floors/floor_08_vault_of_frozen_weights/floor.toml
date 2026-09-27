@@ -3,7 +3,7 @@ number = 8
 slug = "vault_of_frozen_weights"
 name = "The Vault of Frozen Weights"
 tagline = "A finished model sleeps here under ice. Teach it a new tongue without waking what it already knows."
-topics = ["checkpoints and requires_grad", "freezing", "LoRA and parameter-efficient fine-tuning", "fine-tuning loops", "catastrophic forgetting and its mitigations", "adapter swapping and merging"]
+topics = ["checkpoints and requires_grad", "freezing", "LoRA and parameter-efficient fine-tuning", "fine-tuning loops", "catastrophic forgetting and its mitigations", "supervised fine-tuning: chat templates and loss masking", "direct preference optimization (DPO)", "adapter swapping and merging"]
 requires = ["torch"]
 
 map = '''
@@ -14,10 +14,16 @@ map = '''
    │      DOOR       │     │      SIGIL       │     │                      │
    └─────────────────┘     └──────────────────┘     └──────────┬───────────┘
                                                                │
-   ┌─────────────────┐     ┌──────────────────┐                │
-   │ ☠ THE FORGETTER │─────│  8.4 THE         │────────────────┘
-   │   ANTECHAMBER   │     │     FORGETTING   │
-   └────────┬────────┘     └──────────────────┘
+   ┌─────────────────┐     ┌──────────────────┐     ┌──────────┴───────────┐
+   │  8.6 THE        │─────│  8.5 THE SCRIBE'S│─────│  8.4 THE FORGETTING  │
+   │  PREFERENCE     │     │     INSTRUCTION  │     │                      │
+   │     SCALE       │     └──────────────────┘     └──────────────────────┘
+   └────────┬────────┘
+            │
+   ┌────────┴────────┐
+   │ ☠ THE FORGETTER │
+   │   ANTECHAMBER   │
+   └────────┬────────┘
             ┆  ◇ a cold draught: the Replay Well
             ▼  stairs down to Floor 9
 '''
@@ -62,6 +68,22 @@ trial = "trials/test_room_4.py"
 blurb = "Measure what the new tongue costs the old one. Full fine-tune, lower lr, LoRA, replay: prophesy which forgets most and least."
 
 [[rooms]]
+id = "room_5"
+name = "The Scribe's Instruction"
+kind = "room"
+file = "rooms/room_5_the_scribes_instruction.py"
+trial = "trials/test_room_5.py"
+blurb = "Supervised fine-tuning. A plain-text chat template the Chronicler can spell, labels of -100 over the question, and forty steps until it answers ledger prices."
+
+[[rooms]]
+id = "room_6"
+name = "The Preference Scale"
+kind = "room"
+file = "rooms/room_6_the_preference_scale.py"
+trial = "trials/test_room_6.py"
+blurb = "Direct preference optimization. Sequence log-probs, a loss that starts at ln 2, a frozen reference, and thirty steps that tip the scale toward the true continuation."
+
+[[rooms]]
 id = "boss"
 name = "The Catastrophic Forgetter"
 kind = "boss"
@@ -85,4 +107,4 @@ blurb = "A clean, commented LoRALinear + inject + merge you can drop into any Py
 [[loot]]
 name = "Fine-Tuning Cheat Sheet"
 file = "loot/finetuning_cheat_sheet.md"
-blurb = "Full FT vs LoRA vs adapters vs prompt tuning, the r/alpha rule of thumb, which modules to target, the forgetting mitigations, merge vs runtime adapters, checkpoint hygiene."
+blurb = "Full FT vs LoRA vs adapters vs prompt tuning, the r/alpha rule of thumb, which modules to target, the forgetting mitigations, SFT templates and masking, the DPO loss and its knobs, merge vs runtime adapters, checkpoint hygiene."
