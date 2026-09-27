@@ -133,7 +133,7 @@ def cmd_map(args: argparse.Namespace, root: Path) -> int:
         missing = _missing_requirements(floor)
         if missing:
             state += ui.dim(f"  (needs {', '.join(missing)})")
-        rows.append(f"{name:<44} {bar:<28} {state}{marker}")
+        rows.append(f"{ui.pad(name, 38)} {ui.pad(bar, 10)} {state}{marker}")
     plural = "floor" if len(floors) == 1 else "floors"
     print(ui.box(rows, header=f"NEURAL DUNGEON - {len(floors)} {plural}"))
     print()

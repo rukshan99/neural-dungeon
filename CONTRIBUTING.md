@@ -193,6 +193,9 @@ Rules:
 - Use `dungeon.scrutiny` (`python_loops_in`, `names_called_in`, `operators_used_in`, `is_stub`) when a room forbids or requires a construct.
 - Trials may monkeypatch library functions to enforce a rule (the Basilisk petrifies `np.broadcast_shapes`). Do it through the `monkeypatch` fixture so it is undone.
 - One trial file per room; the file must not pass against the stub (the check script enforces this).
+- A floor may add `trials/conftest.py` for floor-wide fixtures (Floor 4 pins torch to one thread because its models are tiny). The root `conftest.py` already caps BLAS/OpenMP pools at 4 threads before numpy or torch load; measure before changing that for your floor, since the 800K-parameter Chronicler is faster with several threads.
+- Shared non-stub fixtures (a corpus, a mock model, tool implementations) live in `<floor>/assets/` with an `__init__.py`. Assets never import from `rooms/` or `solutions/`; trials build learner objects from asset data instead, so a broken room cannot break the fixtures.
+- If a stub imports a name only so its docstring can refer to it, mark the import `# noqa: F401`; `ruff --fix` would otherwise strip it.
 
 ## Hints (`hints/<room_id>.md`)
 

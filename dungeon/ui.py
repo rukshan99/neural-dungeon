@@ -7,6 +7,7 @@ Deliberately dependency-free. Colour is disabled when stdout is not a TTY or whe
 from __future__ import annotations
 
 import os
+import re
 import shutil
 import sys
 import textwrap
@@ -99,15 +100,22 @@ def wrap(text: str, indent: str = "  ", w: int | None = None) -> str:
     return "\n\n".join(out)
 
 
+_ANSI = re.compile(r"\033\[[0-9;]*m")
+
+
+def visible_len(s: str) -> int:
+    """Length of ``s`` as the terminal shows it (ANSI colour codes excluded)."""
+    return len(_ANSI.sub("", s))
+
+
+def pad(s: str, n: int) -> str:
+    """Left-justify ``s`` to ``n`` visible columns, ignoring ANSI codes."""
+    return s + " " * max(0, n - visible_len(s))
+
+
 def box(lines: list[str], header: str | None = None, pad: int = 1) -> str:
     """Draw a single-line box around ``lines`` (ANSI codes are ignored for width)."""
-    import re
-
-    ansi = re.compile(r"\033\[[0-9;]*m")
-
-    def visible(s: str) -> int:
-        return len(ansi.sub("", s))
-
+    visible = visible_len
     inner = max([visible(s) for s in lines] + [visible(header or "")]) + pad * 2
     top = "┌" + "─" * inner + "┐"
     if header:
