@@ -84,7 +84,7 @@ Every room has a reference implementation in `solutions/`. It is there so the re
 | 12 | **The Engine Room** | KV caching, int8 quantization, batching, latency percentiles, a streaming inference server, speculative decoding | The Latency Leviathan | torch |
 | 13 | **The Watchtower** | tracing, drift detection (PSI, KS, JS), canary releases and ramps, alerting with hysteresis, error budgets, the label-delay and peeking problems | The Silent Drift | numpy |
 
-Thirteen floors, 56 rooms, 13 bosses, 13 secret rooms, 1,230 trials. Each floor takes an evening or two. Floors are independent enough to enter out of order if you already know a topic, but the first time through, go down in sequence: later floors reuse habits (and one shared tiny GPT) from earlier ones. When the map shows every floor cleared, read [EPILOGUE.md](EPILOGUE.md).
+Fourteen floors, 66 rooms, 14 bosses, 14 secret rooms, 1,474 trials. Each floor takes an evening or two. Floors are independent enough to enter out of order if you already know a topic, but the first time through, go down in sequence: later floors reuse habits (and one shared tiny GPT) from earlier ones. When the map shows every floor cleared, read [EPILOGUE.md](EPILOGUE.md).
 
 ## What a floor looks like
 
