@@ -104,6 +104,9 @@ def test_an_exception_marks_the_span_and_still_escapes():
             1 / 0  # noqa: B018 - the point is the exception
     assert span.status == "error", f"A span that raised has status 'error', not {span.status!r}."
     assert span.attributes.get("error.type") == "ZeroDivisionError", f"Record the exception type under 'error.type'; got {span.attributes}."
+    assert span.attributes.get("error.message") == "division by zero", (
+        f"Record str(exc) under 'error.message' so the ledger says what went wrong, not just that it did; got {span.attributes}."
+    )
     assert span.end == 0.010, "The span must still be closed (end set) when the exception passes through: use finally."
     assert tracer.current is None, "The stack must be popped even on error, or every later span becomes a child of the corpse."
     assert tracer.traces == [span], "The failed trace is still recorded; failures are what you will be reading at 2 a.m."
@@ -132,6 +135,10 @@ def test_record_llm_call_records_usage_and_cost():
         f"cost_usd = input * {room.INPUT_PRICE_PER_MILLION}/1e6 + output * {room.OUTPUT_PRICE_PER_MILLION}/1e6 = {expected_cost:.8f}; got {attrs.get('cost_usd')}."
     )
     assert attrs.get("model") == "scribe-v1", "Record which model answered; you will compare models later."
+    assert attrs.get("stop_reason") == completion.stop_reason, (
+        f"Record completion.stop_reason ({completion.stop_reason!r}): a model that keeps stopping on max_tokens is truncating answers, "
+        f"a quality regression you can see without labels. Got {attrs.get('stop_reason')!r}."
+    )
 
 
 def test_record_tool_call_returns_the_result_and_marks_failures():

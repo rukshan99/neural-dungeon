@@ -6,6 +6,7 @@ decision rule with every branch exercised, and a ramp that only moves forward
 on evidence.
 """
 
+import hashlib
 import math
 
 import numpy as np
@@ -28,6 +29,17 @@ def test_the_fraction_is_respected_over_many_requests(fraction):
     share = sum(room.assign_arm(i, fraction, salt="tower") == "canary" for i in ids) / len(ids)
     assert abs(share - fraction) < 0.01, (
         f"Asked for {fraction:.0%} canary, got {share:.3%} over 20,000 ids. Map the hash to a uniform number in [0, 1) and compare it with the fraction."
+    )
+
+
+@pytest.mark.parametrize("request_id", ["req-7", "req-13", "tower-1"])
+def test_the_assignment_follows_the_sha256_recipe_so_every_server_agrees(request_id):
+    u = int.from_bytes(hashlib.sha256(f"tower:{request_id}".encode()).digest()[:8], "big") / 2**64
+    just_above, just_below = room.assign_arm(request_id, u + 1e-6, salt="tower"), room.assign_arm(request_id, u - 1e-6, salt="tower")
+    assert (just_above, just_below) == ("canary", "baseline"), (
+        f"sha256('tower:{request_id}') -> first 8 bytes -> / 2**64 gives u = {u:.6f}: a fraction just above u must take this request "
+        f"and one just below must not; got {just_above!r} / {just_below!r}. Python's hash() is salted per process, so two servers would "
+        "disagree on the arm; hash f'{salt}:{request_id}' with hashlib.sha256."
     )
 
 
@@ -84,12 +96,29 @@ def test_compare_arms_is_unpaired_and_honest_about_noise():
     assert width > 0.1, f"With only 100 canary requests the interval should be wide (~0.14), not {width:.3f}. Resample EACH arm on its own."
 
 
+def test_compare_arms_resamples_both_arms():
+    rng = np.random.default_rng(20)
+    baseline = (rng.random(300) < 0.5).astype(float)
+    canary = (rng.random(300) < 0.5).astype(float)
+    result = room.compare_arms(baseline, canary, rng=np.random.default_rng(21))
+    width = result["ci_high"] - result["ci_low"]
+    assert 0.14 < width < 0.19, (
+        f"Two arms of 300 coin flips: the standard error of the difference is sqrt(0.25/300 + 0.25/300) = 0.041, so a 95% interval is about "
+        f"0.16 wide; yours is {width:.3f}. Both arms are noisy. Holding the baseline fixed and resampling only the canary gives about 0.11: "
+        "too narrow by a factor of sqrt(2), and a canary that looks more certain than it is."
+    )
+
+
 def test_compare_arms_is_exact_on_constant_arms_and_refuses_empty_ones():
     result = room.compare_arms([0.8] * 10, [0.9] * 10)
     assert math.isclose(result["delta"], 0.1) and math.isclose(result["ci_low"], 0.1) and math.isclose(result["ci_high"], 0.1), (
         f"Constant arms: every resample gives the same 0.1 gap, so the interval collapses to (0.1, 0.1); got {result}."
     )
     assert result["p_value"] == 0.0
+    tie = room.compare_arms([0.5] * 5, [0.5] * 5)
+    assert tie["p_value"] == 1.0, (
+        f"Identical constant arms: every bootstrap delta is 0, so both tails are 1 and the two-sided p-value is capped at 1.0 (min(1, 2 * min(...))), not {tie['p_value']}."
+    )
     with pytest.raises(ValueError):
         room.compare_arms([], [1.0, 0.0])
     same = room.compare_arms([1, 0, 1, 1], [1, 1, 0, 1], rng=np.random.default_rng(9))

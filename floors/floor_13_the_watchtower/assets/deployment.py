@@ -10,7 +10,7 @@ label is a noisy rule on the features with a hinge on ``x2``:
     label  = 1 if margin > 0 else 0
 
 Before the drift ``x2 ~ N(0, 0.5^2)``, so it exceeds 1 on about 2% of requests
-and a rule that ignores the hinge loses about a point of accuracy. From
+and a rule that ignores the hinge loses about a quarter of a point of accuracy. From
 ``drift_day`` on, the mean of ``x2`` climbs by ``drift_rate`` per day and
 nothing else changes: the *inputs* move, the rule that makes the labels does
 not. That is covariate shift, and it is the kind a drift glass can see.

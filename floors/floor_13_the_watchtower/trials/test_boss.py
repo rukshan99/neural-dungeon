@@ -31,7 +31,7 @@ room4 = load_room(__file__, "room_4_the_alarm_bell")
 pytestmark = pytest.mark.boss
 
 N_DAYS, DRIFT_DAY, LABEL_DELAY, N_PER_DAY = 60, 20, 5, 500
-K = 7  # the glass must see the drift within K days of its onset (the reference solution takes 2-3)
+K = 7  # the glass must see the drift within K days of its onset (the reference solution detects on day 21-23)
 SEEDS = (0, 1, 2)
 CANDIDATES = {"retrained": RETRAINED, "worse": WORSE, "slow": SLOW, "flaky": FLAKY}
 LOG_FIELDS = ("day", "signal", "value", "decision", "reason")
@@ -51,6 +51,21 @@ def _entries(tower, signal=None, decision=None):
         e for e in tower.decision_log
         if (signal is None or e["signal"] == signal) and (decision is None or e["decision"] == decision)
     ]
+
+
+def _first_day_with_enough_canary_labels(tower):
+    """The first day on which MIN_CANARY_SCORES labelled canary requests exist, read from the tower's own records:
+    canary traffic from the start day onwards, whose labels arrive LABEL_DELAY days later."""
+    total = 0
+    for day in range(tower.canary_start_day, N_DAYS):
+        total += int(np.sum(tower.records[day].canary))
+        if total >= boss.MIN_CANARY_SCORES:
+            return day + LABEL_DELAY
+    return None
+
+
+def _candidate_traffic_after(tower, day):
+    return [d for d, record in sorted(tower.records.items()) if d > day and np.any(record.canary)]
 
 
 # --------------------------------------------------------------------- phase 1
@@ -103,10 +118,41 @@ def test_phase_2_the_retrained_scribe_is_promoted_only_on_evidence(seed):
         )
         assert details.get("guardrails_passed") is True, "Promotion also needs the guardrails to hold; record that in the details."
     assert promotes[-1].get("details", {}).get("fraction_after") == 1.0, "The final promote takes the canary to 100% of traffic."
+    steps = [(e.get("details", {}).get("fraction_before"), e.get("details", {}).get("fraction_after")) for e in promotes]
+    expected_steps = list(zip(boss.DEFAULT_RAMP, boss.DEFAULT_RAMP[1:]))
+    assert steps == expected_steps, (
+        f"The ramp is {boss.DEFAULT_RAMP} and each promote climbs ONE step (advance_ramp), so the promotes should record "
+        f"(fraction_before, fraction_after) = {expected_steps}, not {steps}. Straight from 10% to 100% skips the scale at which most releases break."
+    )
     for earlier, later in zip(promotes, promotes[1:]):
         assert later["day"] - earlier["day"] >= LABEL_DELAY + 1, (
             f"Ramp steps on days {earlier['day']} and {later['day']}: the second decision used the same evidence as the first. "
             f"After a step, wait until labels from traffic served at the NEW fraction have arrived ({LABEL_DELAY} days)."
+        )
+
+
+@pytest.mark.parametrize("seed", SEEDS)
+def test_phase_2_the_traffic_follows_the_ramp_one_day_behind_each_decision(seed):
+    tower = _run(seed)
+    promotes = _entries(tower, "canary", "promote")
+    assert len(promotes) == 2 and set(tower.records) == set(range(N_DAYS)), (
+        f"Two ramp steps and a DayRecord for every one of the {N_DAYS} days are needed here; got {len(promotes)} promotes and records for {len(tower.records)} days."
+    )
+    first_step, last_step = promotes[0]["day"], promotes[-1]["day"]
+    for day, record in sorted(tower.records.items()):
+        share = float(np.mean(record.canary))
+        if day < tower.canary_start_day:
+            expected, tolerance = 0.0, 0.0
+        elif day <= first_step:
+            expected, tolerance = boss.DEFAULT_RAMP[0], 0.06
+        elif day <= last_step:
+            expected, tolerance = boss.DEFAULT_RAMP[1], 0.10
+        else:
+            expected, tolerance = 1.0, 0.0
+        assert abs(share - expected) <= tolerance, (
+            f"Day {day}: {share:.1%} of requests were served by the candidate; expected about {expected:.0%}. Before the glass speaks nobody is; "
+            f"during the canary assign_arm at the CURRENT fraction decides; a promote on day d changes the fraction from day d + 1; "
+            "once promoted the candidate serves everyone. Logging a decision is not the same as acting on it."
         )
 
 
@@ -119,9 +165,21 @@ def test_phase_2_a_worse_retrain_is_rolled_back_on_the_numbers():
     rollback = rollbacks[0]
     assert rollback["signal"] == "canary", f"This rollback is a quality decision (signal 'canary'), not a guardrail; got {rollback['signal']!r}."
     assert rollback["day"] >= tower.canary_start_day + LABEL_DELAY, "Accuracy cannot be judged before labels arrive."
+    first_allowed = _first_day_with_enough_canary_labels(tower)
+    assert rollback["day"] == first_allowed, (
+        f"The hasty scribe is 25 points worse, so the first day the sample allows a decision is the day it goes: day {first_allowed} "
+        f"(the day {boss.MIN_CANARY_SCORES} labelled canary requests exist, labels being {LABEL_DELAY} days late). You rolled back on day {rollback['day']}. "
+        "Earlier is a decision on too few labels; later is another day of traffic served by a worse model."
+    )
     details = rollback.get("details", {})
+    assert details.get("n_canary", 0) >= boss.MIN_CANARY_SCORES, (
+        f"A rollback on quality needs the same minimum sample as a promotion; this one used {details.get('n_canary')} labelled canary requests."
+    )
     assert details.get("ci_high", 1.0) < 0.0, f"Rollback on quality needs the CI entirely below zero; details: {details}."
     assert tower.canary_fraction == 0.0, "After a rollback nobody is served by the candidate."
+    assert not _candidate_traffic_after(tower, rollback["day"]), (
+        f"Rollback is a state, not an event: the candidate still served requests on day(s) {_candidate_traffic_after(tower, rollback['day'])}."
+    )
     assert not [e for e in _entries(tower, "canary") if e["day"] > rollback["day"]], "After the rollback the canary is over: no more canary decisions."
 
 
@@ -140,6 +198,10 @@ def test_phase_2_a_guardrail_breach_rolls_back_before_any_label_arrives(candidat
         f"Name the guardrail that broke ({violated}) in the reason or details; got {rollback['reason']!r}."
     )
     assert not _entries(tower, decision="promote")
+    assert tower.canary_fraction == 0.0, "After a guardrail rollback the canary fraction is 0."
+    assert not _candidate_traffic_after(tower, rollback["day"]), (
+        f"Rolled back on day {rollback['day']}, yet the {candidate} scribe still served requests on day(s) {_candidate_traffic_after(tower, rollback['day'])}."
+    )
 
 
 def test_phase_2_score_record_joins_late_labels_by_arm():
@@ -192,7 +254,17 @@ def test_phase_3_the_bell_rings_late_because_labels_do():
     alert = alerts[0]
     assert alert["value"] > boss.ERROR_RATE_FIRE
     assert alert["day"] >= tower.drift_day + LABEL_DELAY, "The bell cannot ring about a day whose labels have not arrived."
-    assert alert["day"] > tower.drift_day, "The glass spoke first; the bell rang later. That is the whole point of watching the inputs."
+    assert alert["day"] - tower.drift_day >= 7, (
+        f"The glass spoke on day {tower.drift_day} and the bell rang on day {alert['day']}. Under slow drift the inputs move a week or more "
+        "before the accuracy does, and the labels add their delay on top. That is the whole point of watching the inputs."
+    )
+    scored_day = alert["day"] - LABEL_DELAY
+    days = list(simulate_days(N_DAYS, DRIFT_DAY, 0, n_per_day=N_PER_DAY))
+    expected = 1.0 - float(np.mean(tower.records[scored_day].predictions == days[scored_day].labels))
+    assert math.isclose(alert["value"], expected, abs_tol=1e-9), (
+        f"The bell rang on day {alert['day']} with value {alert['value']:.4f}, but the labels that arrived that day belong to day {scored_day}, "
+        f"whose error rate (from your own record of what was served) is {expected:.4f}. Join the labels onto the record of day - label_delay."
+    )
 
 
 def test_phase_3_render_decision_log_is_a_markdown_table():
@@ -205,6 +277,7 @@ def test_phase_3_render_decision_log_is_a_markdown_table():
         assert column in header, f"The header must name the column {column!r}."
     weird = boss.render_decision_log([{"day": 1, "signal": "a|b", "value": 0.5, "decision": "extend", "reason": "x|y"}])
     assert "a\\|b" in weird and "x\\|y" in weird, "Escape '|' inside cells or the table breaks."
+    assert "0.5000" in weird and "extend" in weird, "Every column of the entry appears in its row, the value to 4 decimals."
 
 
 # --------------------------------------------------------------------- phase 4

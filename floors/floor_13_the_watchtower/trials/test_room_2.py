@@ -57,6 +57,17 @@ def test_psi_is_large_for_a_mean_shift():
     assert room.psi_verdict(0.05) == "stable" and room.psi_verdict(0.15) == "moderate", "0.1 and 0.25 are the rule-of-thumb lines."
 
 
+def test_psi_by_hand_is_in_nats():
+    ref = np.arange(1000.0)  # four quantile bins, each holding exactly a quarter of the reference
+    current = np.repeat([100.0, 300.0, 600.0, 900.0], [40, 30, 20, 10])  # current fractions 0.4, 0.3, 0.2, 0.1
+    expected = sum((c - 0.25) * math.log(c / 0.25) for c in (0.4, 0.3, 0.2, 0.1))
+    got = room.psi(ref, current, n_bins=4)
+    assert math.isclose(got, expected, rel_tol=1e-6), (
+        f"Reference fractions 0.25 each, current 0.4/0.3/0.2/0.1: PSI = sum (c - r) ln(c / r) = {expected:.4f}; you said {got:.4f}. "
+        "PSI uses the natural log (log10 would give 0.099, and the 0.1 / 0.25 rule-of-thumb lines would mean something else)."
+    )
+
+
 def test_psi_survives_an_empty_bin_thanks_to_eps():
     ref = np.arange(1000.0)
     current = np.full(200, 5.0)  # everything in one bin
@@ -77,6 +88,13 @@ def test_ks_by_hand_and_symmetric():
     got = room.ks_statistic(a, b)
     assert math.isclose(got, 0.5), f"F_a(2) = 0.5 and F_b(2) = 0, F_a(4) = 1 and F_b(4) = 0.5: the largest gap is 0.5; you said {got}."
     assert math.isclose(room.ks_statistic(b, a), got), "KS is symmetric."
+    a, b = [0.0, 10.0, 11.0], [1.0, 2.0, 3.0]
+    got = room.ks_statistic(a, b)
+    assert math.isclose(got, 2 / 3), (
+        f"At x = 3, F_b = 1 and F_a = 1/3: the largest gap is 2/3 and it sits at one of b's values; you said {got:.4f}. "
+        "Evaluate both CDFs on the POOLED values: a grid built from one sample alone misses the other sample's jumps."
+    )
+    assert math.isclose(room.ks_statistic(b, a), 2 / 3), "KS is symmetric, whichever sample supplies the point where the gap is largest."
 
 
 def test_ks_stays_small_for_the_same_distribution():
@@ -175,8 +193,27 @@ def test_the_monitor_flags_the_feature_that_moved():
 def test_the_monitor_pools_a_window_of_batches():
     rng, ref = _world(11)
     monitor = room.DriftMonitor(ref, window=3)
-    sizes = [monitor.observe(rng.normal(size=(400, 3)))["n_current"] for _ in range(5)]
+    batches = [rng.normal(size=(400, 3)) for _ in range(5)]
+    reports = [monitor.observe(batch) for batch in batches]
+    sizes = [r["n_current"] for r in reports]
     assert sizes == [400, 800, 1200, 1200, 1200], f"window=3 pools the last three batches: expected [400, 800, 1200, 1200, 1200], got {sizes}."
+    pooled = np.concatenate(batches[2:])  # the last three batches are what the fifth report must measure
+    for j in range(3):
+        assert math.isclose(reports[-1]["psi"][j], room.psi(ref[:, j], pooled[:, j], monitor.edges[j])), (
+            f"Feature {j}: the report's PSI must be computed on the POOLED window against the reference's precomputed edges, not on the latest batch alone."
+        )
+        assert math.isclose(reports[-1]["ks"][j], room.ks_statistic(ref[:, j], pooled[:, j])), f"Feature {j}: KS must also be computed on the pooled window."
+
+
+def test_either_instrument_alone_is_enough_to_flag_a_feature():
+    rng = np.random.default_rng(13)
+    ref = rng.normal(size=(4000, 2))
+    only_psi = room.DriftMonitor(ref, thresholds={"psi": 1e-9, "ks": 10.0})  # KS lives in [0, 1]: it can never cross 10
+    assert only_psi.observe(rng.normal(size=(400, 2)))["drifted_features"] == [0, 1], (
+        "PSI over its line is drift even while KS is under its line: a feature drifts when EITHER instrument crosses (or, not and)."
+    )
+    only_ks = room.DriftMonitor(ref, thresholds={"psi": 10.0, "ks": 1e-9})  # PSI cannot reach 10 with eps = 1e-4 either
+    assert only_ks.observe(rng.normal(size=(400, 2)))["drifted_features"] == [0, 1], "KS over its line is drift even while PSI is under its line."
 
 
 def test_the_monitor_accepts_a_single_feature_and_custom_thresholds():
