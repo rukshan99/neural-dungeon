@@ -312,7 +312,8 @@ def pytest_terminal_summary(terminalreporter, exitstatus: int, config: pytest.Co
             lines.append("")
             lines.append("Loot unlocked:")
             for loot in floor.loot:
-                lines.append(f"  {ui.glyph('secret_found')} {loot.name}  ->  {floor.path.relative_to(state.root) / loot.file}")
+                lines.append(f"  {ui.glyph('secret_found')} {loot.name}")
+                lines.append(f"      {floor.path.relative_to(state.root) / loot.file}")
         lines.append("")
         lines.append(ui.dim("Run `dungeon map` to see the way down."))
         for line in ui.box(lines).splitlines():

@@ -306,7 +306,7 @@ def cmd_loot(args: argparse.Namespace, root: Path) -> int:
                 print(f"   {ui.green(ui.glyph('secret_found'))} {loot.name:<40} {ui.cyan(path)}")
             else:
                 boss = floor.boss.name if floor.boss else "the floor"
-                print(f"   {ui.dim('🔒')} {ui.dim(loot.name):<40} {ui.dim('locked - defeat ' + boss)}")
+                print(f"   {ui.dim(ui.glyph('locked'))} {ui.dim(loot.name):<40} {ui.dim('locked - defeat ' + boss)}")
             if loot.blurb and (status.cleared or args.peek):
                 print(ui.dim(ui.wrap(loot.blurb, indent="       ")))
         print()
@@ -421,7 +421,7 @@ def build_parser() -> argparse.ArgumentParser:
 
     def add_pytest_passthrough(p: argparse.ArgumentParser) -> None:
         p.add_argument("-v", "--verbose", action="store_true", help="verbose pytest output")
-        p.add_argument("pytest_args", nargs=argparse.REMAINDER, help="extra args for pytest after --")
+        p.epilog = "Anything after `--` (or any option this command does not know) is passed to pytest, e.g. `-- -x -k shape`."
 
     p = sub.add_parser("trial", help="run trials for a floor or a room")
     p.add_argument("floor")
@@ -465,13 +465,24 @@ COMMANDS = {
 }
 
 
+PYTEST_COMMANDS = {"trial", "fight"}
+
+
 def main(argv: list[str] | None = None) -> int:
+    argv = list(sys.argv[1:] if argv is None else argv)
+    # Everything after a bare "--" goes to pytest verbatim.
+    passthrough: list[str] = []
+    if "--" in argv:
+        cut = argv.index("--")
+        passthrough, argv = argv[cut + 1:], argv[:cut]
     parser = build_parser()
-    args = parser.parse_args(argv)
-    if getattr(args, "pytest_args", None):
-        # argparse.REMAINDER keeps a leading "--"; pytest does not want it.
-        args.pytest_args = [a for a in args.pytest_args if a != "--"]
+    args, unknown = parser.parse_known_args(argv)
     command = args.command or "map"
+    if command in PYTEST_COMMANDS:
+        # Options this command does not know (-x, -k, --pdb, ...) are pytest's.
+        args.pytest_args = unknown + passthrough
+    elif unknown or passthrough:
+        parser.error(f"unrecognized arguments: {' '.join(unknown + passthrough)}")
     try:
         root = find_root()
         return COMMANDS[command](args, root)

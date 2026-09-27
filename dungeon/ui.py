@@ -155,6 +155,7 @@ GLYPHS = {
     "room_open": "□",
     "arrow": "→",
     "surface": "☀",
+    "locked": "🔒",
 }
 
 if os.environ.get("DUNGEON_ASCII"):
@@ -168,6 +169,7 @@ if os.environ.get("DUNGEON_ASCII"):
         room_open="-",
         arrow="->",
         surface="O",
+        locked="[locked]",
     )
 
 
