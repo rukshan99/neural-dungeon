@@ -90,6 +90,45 @@ Detach (or `.item()`, which detaches and converts) whenever a tensor leaves the 
 
 Do **not** detach the loss before `backward()`, nor activations you still need gradients through. And remember: `detach()` shares memory with the original; writing into it writes into the original. `detach().clone()` if you intend to modify.
 
+## Mixed precision (from Room 4.6)
+
+Every number here is `torch.finfo(dtype)`.
+
+| Format | sign/exponent/mantissa | largest finite | `eps` | smallest normal | use it for |
+|---|---|---|---|---|---|
+| `float32` | 1/8/23 | 3.4e38 | 1.2e-7 | 1.2e-38 | master weights, optimizer state, losses, norms, reductions |
+| `float16` | 1/5/10 | **65504** | 9.8e-4 | 6.1e-5 | matmuls on pre-Ampere GPUs; training needs `GradScaler` |
+| `bfloat16` | 1/8/7 | 3.4e38 | 7.8e-3 | 1.2e-38 | matmuls on Ampere+ GPUs and modern CPUs; training usually needs no scaler; inference weights |
+
+The recipe (bfloat16; for float16 add the three `scaler.` lines):
+
+```python
+scaler = torch.amp.GradScaler("cuda")                          # float16 only
+with torch.autocast(device_type=device.type, dtype=torch.bfloat16):
+    logits = model(xb)                                          # matmuls in 16 bits
+    loss = F.cross_entropy(logits, yb)                          # loss in float32
+loss.backward()                  # float16: scaler.scale(loss).backward(); scaler.step(optimizer); scaler.update()
+optimizer.step()                 # OUTSIDE the autocast block, both of them
+```
+
+| Symptom | Cause | Fix |
+|---|---|---|
+| Loss becomes `inf` or `nan` after a while; fine in float32 | float16 overflow: an activation, logit or sum passed 65504 | `GradScaler` skips the step and halves the scale; or switch to bfloat16; keep sums, variances and norms in float32 |
+| Many gradients exactly zero, loss stalls; float16 only | underflow: gradients below about 6e-8 flush to zero | loss scaling (`GradScaler`), or bfloat16 |
+| Trains in float32, stalls in 16 bits with no error | the weights themselves were cast (`model.to(bfloat16)` / `.half()`); updates smaller than `eps` times the weight are rounded away | keep weights float32 and use `autocast`; cast weights only for inference |
+| `mat1 and mat2 must have the same dtype` after `model.half()` or `.to(bfloat16)` | the batch is still float32 | cast the batch to the model's dtype, or use autocast and cast nothing |
+| `GradScaler`'s scale shrinks step after step towards zero | every step produces `inf`/`nan`: a real numerical bug (exploding loss, `log(0)`), not a precision limit | fix the numerics; `torch.autograd.set_detect_anomaly(True)` names the op |
+| Accuracy a little lower under autocast than in float32 | a fragile op ran in 16 bits (a hand-rolled softmax, a variance, a long sum; on CPU `layer_norm` and `softmax` are not on the float32 list) | `x.float()` before it, or `with torch.autocast(device_type=..., enabled=False):` around it |
+| "float32" GPU results differ from CPU at about 1e-3 | TF32 matmuls (`torch.set_float32_matmul_precision("high")`) or cuDNN's default TF32 convolutions | `torch.set_float32_matmul_precision("highest")` and `torch.backends.cudnn.allow_tf32 = False` when bitwise agreement matters |
+
+Memory arithmetic, bytes per parameter:
+
+- Training with Adam in float32: weights 4 + gradients 4 + two moments 8 = **16**. Mixed precision keeps all of those in float32 (the 16-bit copies are for the arithmetic), so the ledger stays 16; activations halve and matmuls get faster.
+- Inference: 4 in float32, 2 in bfloat16 or float16. Seven billion parameters: 28 GB or 14 GB.
+- For any model: `sum(p.numel() * p.element_size() for p in model.parameters())`.
+
+Rules of thumb: bfloat16 without a scaler, float16 never without one; `backward()` and `step()` outside the autocast block; never train weights stored in 16 bits; `torch.autocast(device_type="cpu")` defaults to bfloat16.
+
 ## The reproducibility checklist (from the boss)
 
 1. `random.seed(s)`, `np.random.seed(s)`, `torch.manual_seed(s)`, once, before building the model.

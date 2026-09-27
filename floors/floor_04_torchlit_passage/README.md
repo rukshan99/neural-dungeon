@@ -11,10 +11,15 @@
    └─────────────────┘     └──────────────────┘     └────────┬─────────┘
                                                              │
    ┌─────────────────┐     ┌──────────────────┐     ┌────────┴─────────┐
-   │ ☠ THE REVENANT'S│─────│  4.5 THE DEVICE  │─────│  4.4 THE CURSED  │
-   │      CRYPT      │     │      FERRY       │     │  TRAINING LOOP   │
+   │  4.6 THE HALF-  │─────│  4.5 THE DEVICE  │─────│  4.4 THE CURSED  │
+   │      LIGHT      │     │      FERRY       │     │  TRAINING LOOP   │
    └────────┬────────┘     └──────────────────┘     └──────────────────┘
-            ┆  ◇ a whisper behind the crypt wall: the Custom Whisper
+            │
+   ┌────────┴────────┐
+   │ ☠ THE REVENANT'S│  ◇ a whisper behind the crypt wall: the Custom Whisper
+   │      CRYPT      │
+   └────────┬────────┘
+            ┆
             ▼  stairs down to Floor 5
 ```
 
@@ -24,7 +29,7 @@ This passage is lit. Along its walls, in iron brackets, hang torches that somebo
 
 So the passage teaches two things at once. The API, precisely enough that you can write any training loop from memory. And the habit of knowing what the light is doing: which tensors are being tracked, which mode the model is in, where the randomness comes from, what a checkpoint must contain. The boss at the end is a creature that comes back different every time you train it. It feeds on people who skipped that second lesson.
 
-**You will learn:** tensors and autograd · `nn.Module` and parameters · `state_dict` save/load · `Dataset` and `DataLoader` · the canonical training loop and its classic bugs · device-agnostic code · determinism and checkpoint/resume.
+**You will learn:** tensors and autograd · `nn.Module` and parameters · `state_dict` save/load · `Dataset` and `DataLoader` · the canonical training loop and its classic bugs · device-agnostic code · mixed precision: float16, bfloat16, autocast and loss scaling · determinism and checkpoint/resume.
 
 **You need:** Python 3.11+, numpy, and PyTorch. The CPU build is small and enough for every floor:
 
@@ -170,6 +175,52 @@ Every tensor lives on a `torch.device`: `cpu`, `cuda:0`, `mps` (Apple silicon), 
 - A module has no `.device`. Ask its parameters: `next(model.parameters()).device`.
 - Batches are nested structures (tuples, dicts of tensors). Write one recursive `to_device` and use it everywhere; the trial uses `meta` as the far bank so it can check the recursion on a CPU-only machine.
 
+### Mixed precision: three floating-point formats
+
+A float32 spends its 32 bits as 1 sign, 8 exponent and 23 mantissa bits. Two 16-bit formats exist, and the whole subject of mixed precision follows from how each one spends the bits it has left:
+
+| | sign | exponent | mantissa | largest finite | `eps` (gap above 1.0) | smallest normal | significant digits |
+|---|---|---|---|---|---|---|---|
+| `torch.float32` | 1 | 8 | 23 | 3.40e38 | 2^-23 ≈ 1.19e-7 | 2^-126 ≈ 1.18e-38 | about 7 |
+| `torch.float16` | 1 | 5 | 10 | **65504** | 2^-10 ≈ 9.77e-4 | 2^-14 ≈ 6.10e-5 | about 3 |
+| `torch.bfloat16` | 1 | 8 | 7 | 3.39e38 | 2^-7 ≈ 7.81e-3 | 2^-126 ≈ 1.18e-38 | 2 to 3 |
+
+Every number in the table is `torch.finfo(dtype)`: `.bits`, `.max`, `.eps`, `.tiny`. The two widths finfo does not report tie the columns together: `eps = 2 ** -mantissa_bits` and `tiny = 2 ** (2 - 2 ** (exponent_bits - 1))`. Below `tiny` a format still has *subnormal* numbers (float16 reaches down to 2^-24 ≈ 6e-8), and below those, zero.
+
+**float16 keeps precision and gives up range.** Eleven significant bits, about three decimal digits (2049 rounds to 2048), but anything above 65504 is `inf` and anything below about 6e-8 is `0`. **bfloat16 keeps range and gives up precision.** The same 8 exponent bits as float32, so 70000 and 1e-8 are both fine, but only eight significant bits: 257 rounds to 256, and `1.0 + 0.001 == 1.0`. Both take 2 bytes per element instead of 4, which is the point of the exercise: half the memory traffic, and on tensor-core hardware several times the matmul throughput.
+
+**Why float16 training needs loss scaling.** Gradients are small numbers. Activation gradients of 1e-6 to 1e-8 are ordinary in a network that is nearly trained, and every one of them below 6e-8 becomes exactly zero in float16; between 6e-8 and 6.1e-5 they are subnormal and lose digits. Meanwhile attention logits, sums of squares and variances are large numbers, and anything past 65504 becomes `inf`, which becomes `nan` one op later. Loss scaling attacks the underflow: multiply the loss by a scale S before `backward()`. The chain rule is linear, so every gradient in the network is multiplied by S too, and 1e-8 × 2^16 = 6.6e-4 is a perfectly ordinary float16 number. Divide the gradients by S before the optimizer step; they land in float32 `.grad`s, which hold 1e-8 without complaint. The overflow half is handled by making S *dynamic*: start large (2^16), and whenever any gradient comes back `inf` or `nan`, skip the step and halve S; after 2000 consecutive clean steps, double it. S settles just below the largest value the network can bear, which is exactly where you want it: as large as possible so nothing underflows, no larger so nothing overflows. That is `torch.amp.GradScaler`, and Room 4.6 has you write it by hand.
+
+**Why bfloat16 mostly does not.** It has float32's exponent, so 1e-8 does not underflow and 70000 does not overflow; the values that break float16 are all in range. bfloat16 training normally runs without a scaler, which is one reason it has become the default for large models on hardware that supports it. Its cost is the missing precision, and that surfaces in two places: weight updates and reductions.
+
+**Master weights stay in float32.** One SGD or Adam step changes a weight by `lr * g`, typically 1e-4 to 1e-6 of the weight's own size. The gap between neighbouring bfloat16 numbers is 2^-7, about 0.8% of the value; in float16 it is 0.1%. Add 1e-4 to a bfloat16 weight of 1.0 and you get 1.0 back: the update is rounded away, and the model stops learning while reporting no error. So the *stored* weights, and the optimizer's moments, stay float32; the 16-bit copies exist only for the arithmetic. "Mixed" precision, not half. Casting the weights themselves (`model.to(torch.bfloat16)`) is for inference, where nothing is updated and the halved memory is the whole prize.
+
+**What autocast does.** `torch.autocast(device_type=..., dtype=...)` is a context manager that intercepts each op and applies a policy from three allow-lists:
+
+- *Low precision:* the matmul family (`mm`, `addmm`, `bmm`, `matmul`, `linear`, `einsum`, the convolutions, `scaled_dot_product_attention`, the RNN cells). Inputs are cast to the autocast dtype on the way in; outputs come out in it. This is where the time goes, so this is where the speed comes from.
+- *float32:* ops that are fragile in 16 bits. On CUDA that list holds the loss functions (`cross_entropy`, `nll_loss`, `mse_loss`, `binary_cross_entropy_with_logits`, ...), `softmax`, `log_softmax`, `layer_norm`, `group_norm`, `sum`, `prod`, `cumsum`, `exp`, `log`, `pow` and the norms. On CPU the float32 list is shorter: the losses, linear algebra and a few pooling ops, but *not* `layer_norm`, `softmax` or `sum`, which run in their inputs' dtype. Room 4.6 asserts only what the CPU build does (Linear out in bfloat16, `cross_entropy` out in float32); on CUDA expect more float32 than you see here.
+- *Promote:* a few many-input ops (`addcmul`, `dot`, `tensordot`, and on CPU `cat` and `stack`) run in the widest dtype among their inputs.
+
+Everything else runs in whatever dtype its inputs already have. Parameters are never modified: an `nn.Linear` keeps float32 weights, autocast casts a bfloat16 copy on entry (and caches it for the duration of the block), and the parameter's `.grad` is float32. The pattern:
+
+```python
+scaler = torch.amp.GradScaler("cuda")           # float16 only; bfloat16 needs no scaler
+for xb, yb in loader:
+    optimizer.zero_grad()
+    with torch.autocast(device_type="cuda", dtype=torch.float16):
+        logits = model(xb)                      # matmuls in float16
+        loss = F.cross_entropy(logits, yb)      # the loss in float32 (allow-list)
+    scaler.scale(loss).backward()               # backward OUTSIDE the block; autograd replays the recorded dtypes
+    scaler.step(optimizer)                      # unscale, look for inf, then step or skip
+    scaler.update()                             # grow or back off
+```
+
+With bfloat16, drop the scaler: `loss.backward(); optimizer.step()`. On CPU write `torch.autocast(device_type="cpu", dtype=torch.bfloat16)`, which is what this floor's trial does.
+
+**Memory arithmetic.** Count bytes per parameter. Float32 weights are 4; their gradients another 4; Adam keeps two float32 moments, 8 more: **16 bytes per parameter** for float32 training with Adam, before a single activation. Mixed precision does not shrink that ledger: the float32 master weights, gradients and moments are still 16, and a framework that stores the 16-bit weights and gradients permanently counts 2 + 2 + 4 + 4 + 4, the same 16. What halves in training is the activations, and what you gain is speed. Inference is a different sum: only the weights, 2 bytes each in bfloat16, so a 7-billion-parameter model is 14 GB rather than 28. `parameter_bytes` in Room 4.6 is that sum, on a toy.
+
+**A note on TF32.** Ampere and later NVIDIA GPUs can run float32 matmuls as *TensorFloat-32*: the inputs are rounded to 10 mantissa bits (float16's precision, float32's exponent) and the products accumulated in float32. It is not a dtype you can store a tensor in; it is a mode of the matmul kernel. `torch.set_float32_matmul_precision("high")` turns it on for matmuls (`"highest"` is the default, and what this CPU build reports), and cuDNN convolutions use it by default (`torch.backends.cudnn.allow_tf32`). Results then differ from true float32 at roughly the 1e-3 level, so if a "float32" GPU run refuses to match a CPU reference, this is the first suspect.
+
 ### Determinism and checkpoints
 
 The sources of randomness in a training run, in the order you meet them: weight initialisation (torch global RNG), the shuffle (the loader's generator, or the global RNG if you gave it none), dropout masks (torch global RNG), anything your own code does with `random` or `numpy`, and, on GPUs, kernels that are non-deterministic by design.
@@ -232,6 +283,14 @@ dungeon trial 4 room_4
 dungeon trial 4 room_5
 ```
 
+### 4.6 The Half-Light — `rooms/room_6_the_half_light.py`
+
+The torches thin out. `dtype_report(dtype)` reads `bits`, `max`, `eps` and `tiny` off `torch.finfo` and supplies the two widths finfo does not know; the trial checks that the columns agree with each other (`eps` really is 2^-mantissa, `tiny` really is 2^(2-2^(e-1))). Then the **Half-Light Prophecy**: eight snippets, predict `"inf"` or `"finite"`, `"zero"` or `"nonzero"`, `True` or `False`, from the table alone. `overflow_demo` sums squares naively in float16 and is supposed to return `inf`; `safe_sum_of_squares` casts first and does not. `forward_autocast_bf16` runs a model under `torch.autocast(device_type="cpu", dtype=torch.bfloat16)` while a spy inside the model checks the mode and a second model reports its loss dtype. `cast_for_inference` and `parameter_bytes` halve a model's weight for inference and prove it. Finally `LossScaler`: `scale`, `unscale_` and `step`, driven by the trial with a clean gradient, an injected `inf`, and a schedule it must reproduce exactly, then with a real 1e-8 gradient that only survives the float16 hop when scaled.
+
+```
+dungeon trial 4 room_6
+```
+
 ---
 
 ## Boss: The Reproducibility Revenant
@@ -268,9 +327,9 @@ dungeon trial 4 --secret
 
 ## Loot
 
-Clear the five rooms and lay the Revenant to rest to unlock:
+Clear the six rooms and lay the Revenant to rest to unlock:
 
-- **The PyTorch Debugging Checklist** — `loot/pytorch_debugging_checklist.md`. Sixty-second triage, the seven curses and ten more classic bugs with symptoms and fixes, the shape/dtype table for the common losses, what `train()`/`eval()` actually change, when to detach, and the reproducibility checklist.
+- **The PyTorch Debugging Checklist** — `loot/pytorch_debugging_checklist.md`. Sixty-second triage, the seven curses and ten more classic bugs with symptoms and fixes, the shape/dtype table for the common losses, what `train()`/`eval()` actually change, when to detach, a mixed-precision page (the three formats, the autocast recipe, the symptoms of overflow and underflow), and the reproducibility checklist.
 - **Training Loop Template (torch)** — `loot/training_loop_template_torch.py`. A clean, device-agnostic, fully seeded loop with checkpointing and exact resume. Runs as a script on the runes; copy it into every project and delete what you do not need.
 
 ## Stuck?
