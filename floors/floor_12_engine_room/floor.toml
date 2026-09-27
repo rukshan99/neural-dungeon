@@ -1,0 +1,96 @@
+id = "floor_12"
+number = 12
+slug = "engine_room"
+name = "The Engine Room"
+tagline = "Beneath everything, the machinery that makes the dungeon run. Pipes of keys and values, a crucible for weights, a ferry for petitions, a wall of gauges, and a door to the outside."
+topics = ["KV cache and prefill vs decode", "int8 quantization", "left-padded batching", "latency percentiles and SLOs", "streaming inference over HTTP", "speculative decoding"]
+requires = ["torch"]
+
+map = '''
+            ▼ stairs from Floor 11
+            │
+   ┌────────┴────────┐     ┌──────────────────┐     ┌──────────────────────┐
+   │ 12.1 THE CACHE  │─────│ 12.2 THE QUANTI- │─────│ 12.3 THE BATCHER     │
+   │     OF KEYS     │     │    ZER'S BENCH   │     │    (the ferry)       │
+   └─────────────────┘     └──────────────────┘     └──────────┬───────────┘
+                                                               │
+   ┌─────────────────┐     ┌──────────────────┐     ┌──────────┴───────────┐
+   │ ☠ THE LEVIATHAN │─────│  12.5 THE GATE   │─────│  12.4 THE METER      │
+   │     TRENCH      │     │ (to the outside) │     │   (a wall of gauges) │
+   └────────┬────────┘     └──────────────────┘     └──────────────────────┘
+            ┆  ◇ a spark jumping the trench: the Speculative Spark
+            ■  There is nothing below the Engine Room. This is the bottom.
+'''
+
+[lines]
+room_cleared = "A gauge settles. Somewhere above, a request finishes sooner than it used to."
+room_failed = "The pipes hiss. Something is being recomputed that was already known."
+boss_intro = "The water in the trench rises. Segment after segment surfaces, each one stamped with a token you computed twice. The Leviathan does not need to hurry. You did that for it."
+boss_defeated = "The Leviathan sinks, shorter than it surfaced. Every key was computed once. Every petition rode the ferry. The gauges agree."
+floor_cleared = "The Engine Room hums evenly. You came down to learn how the machine works; the machine now runs the way you would have built it. There are no more stairs."
+
+[[rooms]]
+id = "room_1"
+name = "The Cache of Keys"
+kind = "room"
+file = "rooms/room_1_cache_of_keys.py"
+trial = "trials/test_room_1.py"
+blurb = "Connect the pipes: cache every layer's keys and values, prefill once, decode one token at a time. Token-exact with the reference and faster on your machine."
+
+[[rooms]]
+id = "room_2"
+name = "The Quantizer's Bench"
+kind = "room"
+file = "rooms/room_2_quantizers_bench.py"
+trial = "trials/test_room_2.py"
+blurb = "Melt fp32 weights into int8 with one scale per row. Bound the error, spare the tied head, and prove the Chronicler still knows the chronicles at a quarter the size."
+
+[[rooms]]
+id = "room_3"
+name = "The Batcher"
+kind = "room"
+file = "rooms/room_3_the_batcher.py"
+trial = "trials/test_room_3.py"
+blurb = "Left-pad ragged prompts, give each its own positions, hide the pads from attention, and decode eight at once exactly as each would decode alone."
+
+[[rooms]]
+id = "room_4"
+name = "The Meter"
+kind = "room"
+file = "rooms/room_4_the_meter.py"
+trial = "trials/test_room_4.py"
+blurb = "Nearest-rank percentiles, a meter that records every request and its time to first token, a load harness and an SLO verdict that names what it failed."
+
+[[rooms]]
+id = "room_5"
+name = "The Gate"
+kind = "room"
+file = "rooms/room_5_the_gate.py"
+trial = "trials/test_room_5.py"
+blurb = "An HTTP server on the standard library: /health, /generate, a /stream that really streams, and a polite 400 for nonsense."
+
+[[rooms]]
+id = "boss"
+name = "The Latency Leviathan"
+kind = "boss"
+file = "rooms/boss_latency_leviathan.py"
+trial = "trials/test_boss.py"
+blurb = "It grows a segment for every token you recompute. Cache AND batch, measure honestly, and predict which of four ways of serving wins before you look."
+
+[[rooms]]
+id = "secret"
+name = "The Speculative Spark"
+kind = "secret"
+file = "rooms/secret_speculative_spark.py"
+trial = "trials/test_secret.py"
+blurb = "Prompt-lookup speculative decoding: draft the next tokens from the context itself, verify them all in one pass, and stay exactly greedy."
+
+[[loot]]
+name = "Inference Optimization Cheat Sheet"
+file = "loot/inference_optimization_cheat_sheet.md"
+blurb = "KV-cache memory formula, prefill vs decode, int8/int4/fp8 at a glance, batching strategies, percentiles and SLOs, streaming, speculative decoding, and a pre-launch checklist."
+
+[[loot]]
+name = "KV Cache Reference"
+file = "loot/kv_cache_reference.py"
+blurb = "A clean cached forward and batched greedy generation for the reference GPT, ready to lift into your own code."
