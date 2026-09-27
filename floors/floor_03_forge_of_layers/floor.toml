@@ -1,0 +1,88 @@
+id = "floor_03"
+number = 3
+slug = "forge_of_layers"
+name = "The Forge of Layers"
+tagline = "Autograd is a luxury. Down here you hammer every layer's backward by hand, and you learn why a network that fits everything has learned nothing."
+topics = ["layers with forward and backward", "initialization and activation statistics", "mini-batch SGD", "validation and early stopping", "overfitting and regularization"]
+requires = []
+
+map = '''
+            ┆  stairs down from Floor 2
+            ▼
+   ┌─────────────────┐     ┌──────────────────┐     ┌──────────────────────┐
+   │  3.1 THE ANVIL  │─────│ 3.2 THE TEMPERING│─────│   3.3 THE BELLOWS    │
+   │  forward/back   │     │   init & stats   │     │  the training loop   │
+   └─────────────────┘     └──────────────────┘     └──────────┬───────────┘
+                                                               │
+   ┌─────────────────┐     ┌──────────────────┐                │
+   │ ☠ THE HYDRA'S   │─────│ 3.4 THE MIRROR OF│────────────────┘
+   │     LAIR        │     │    VALIDATION    │
+   └────────┬────────┘     └──────────────────┘
+            ┆  ◇ a white glow behind the lair: the Batch Norm Crucible
+            ▼  stairs down to Floor 4
+'''
+
+[lines]
+room_cleared = "The metal rings true. The smith nods once and turns back to the fire."
+room_failed = "The blade cracks on the anvil. Check the shapes, check the gradient, strike again."
+boss_intro = "Something in the lair is counting your training examples out loud. It has a head for each one it remembers, and it remembers everything."
+boss_defeated = "The Hydra shrinks to a single, honest head. It knows the spiral now, and none of the lies."
+floor_cleared = "The Forge falls quiet. You have built a network from raw matrices and taught it when to stop. Below, the autograd engines hum."
+
+[[rooms]]
+id = "room_1"
+name = "The Anvil"
+kind = "room"
+file = "rooms/room_1_the_anvil.py"
+trial = "trials/test_room_1.py"
+blurb = "Hammer Linear, ReLU, Tanh and softmax-cross-entropy into layers with forward and backward. Every gradient is checked against finite differences."
+
+[[rooms]]
+id = "room_2"
+name = "The Tempering"
+kind = "room"
+file = "rooms/room_2_the_tempering.py"
+trial = "trials/test_room_2.py"
+blurb = "Xavier, He, and two ways to get it wrong. Measure activation statistics through 20 layers, then prophesy which inits collapse, saturate or survive."
+
+[[rooms]]
+id = "room_3"
+name = "The Bellows"
+kind = "room"
+file = "rooms/room_3_the_bellows.py"
+trial = "trials/test_room_3.py"
+blurb = "Sequential, SGD with weight decay, a shuffled minibatch iterator and the five-line training loop. Then teach an MLP the spirals."
+
+[[rooms]]
+id = "room_4"
+name = "The Mirror of Validation"
+kind = "room"
+file = "rooms/room_4_mirror_of_validation.py"
+trial = "trials/test_room_4.py"
+blurb = "Hold every epoch up to a validation set. Early stopping, a diagnosis rule for overfitting and underfitting, and a prophecy over three curves."
+
+[[rooms]]
+id = "boss"
+name = "The Overfit Hydra"
+kind = "boss"
+file = "rooms/boss_overfit_hydra.py"
+trial = "trials/test_boss.py"
+blurb = "It grows a head for every training example it memorizes, and a fifth of its training labels are lies. Weight decay, dropout, and the mirror."
+
+[[rooms]]
+id = "secret"
+name = "The Batch Norm Crucible"
+kind = "secret"
+file = "rooms/secret_batch_norm_crucible.py"
+trial = "trials/test_secret.py"
+blurb = "BatchNorm1d with running statistics, train/eval modes and the full three-term backward, gradient-checked."
+
+[[loot]]
+name = "Training Loop Template"
+file = "loot/training_loop_template.py"
+blurb = "A clean, commented numpy training loop with validation, early stopping, L2 and dropout, ready to copy into any project."
+
+[[loot]]
+name = "Regularization Cheat Sheet"
+file = "loot/regularization_cheat_sheet.md"
+blurb = "Overfitting symptoms, bias and variance, L2 vs weight decay, dropout math, early stopping, augmentation, when to use which, and the init table."

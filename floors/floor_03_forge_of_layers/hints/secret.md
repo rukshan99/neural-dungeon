@@ -1,0 +1,5 @@
+Forward in train mode: `mu = x.mean(axis=0)`, `var = x.var(axis=0)`, `inv_std = 1 / np.sqrt(var + self.eps)`, `xhat = (x - mu) * inv_std`, `out = gamma * xhat + beta`. Update `self.running_mean = m * self.running_mean + (1 - m) * mu` (same for var) and cache `(xhat, inv_std)`. In eval mode use `self.running_mean` / `self.running_var` instead of `mu` / `var` and change nothing.
+---
+Backward, parameters first: `self.grads["gamma"] += np.sum(dout * xhat, axis=0)`, `self.grads["beta"] += np.sum(dout, axis=0)`. Then `dxhat = dout * gamma`. The three terms of `dx` are the direct path (`N * dxhat`), the path through the mean (`- dxhat.sum(axis=0)`) and the path through the variance (`- xhat * np.sum(dxhat * xhat, axis=0)`), all divided by `N` and multiplied by `inv_std`.
+---
+`dx = (inv_std / N) * (N * dxhat - dxhat.sum(axis=0) - xhat * np.sum(dxhat * xhat, axis=0))`. If the finite-difference check fails only for `dx`, you probably used `dout` where `dxhat` (which includes gamma) belongs, or normalized with the unbiased variance (`ddof=1`) in one place and the biased one in another. Use `x.var(axis=0)` everywhere.
