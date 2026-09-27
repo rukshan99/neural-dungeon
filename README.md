@@ -108,6 +108,12 @@ Rooms come in several formats so it never gets samey: implement-from-docstring, 
 - **Production is part of the curriculum.** Determinism, evaluation, retries, injection defenses, KV caches and latency percentiles are not appendices. They are floors.
 - **Inclusive humour.** The jokes are about shapes and gradients, never about people, and never require you to already be inside a particular culture or company.
 
+## Scope
+
+The path is deliberately the modern, LLM-centred one: from tensors to a transformer you train yourself, then to the systems built around such models (fine-tuning, retrieval, agents, evaluation, inference, operations). Inside that path it aims to be complete, including the production topics courses usually skip: mixed precision, data parallelism, instruction tuning and preference optimisation, injection and output guardrails, evals, KV caches, quantisation, monitoring and canary releases.
+
+Outside that path, and not covered (yet): convolutional networks and computer vision, recurrent networks, reinforcement learning beyond preference optimisation, diffusion models, classical machine learning (trees, SVMs, clustering beyond k-means), and multi-node training at real scale. Each would make a fine floor; [CONTRIBUTING.md](CONTRIBUTING.md) is the blueprint.
+
 ## FAQ
 
 **Do I need a GPU?** No. Every trial is sized for a laptop CPU. If you have one, PyTorch will use it where it helps, and nothing changes.
@@ -127,6 +133,7 @@ Rooms come in several formats so it never gets samey: implement-from-docstring, 
 ```bash
 DUNGEON_SOLUTIONS=1 pytest floors        # every trial must pass against the reference solutions
 python scripts/check_stubs_fail.py       # every trial must fail against the untouched stubs
+python scripts/lint_floors.py            # every manifest, room, trial, hint and loot path must agree
 ```
 
 ## License

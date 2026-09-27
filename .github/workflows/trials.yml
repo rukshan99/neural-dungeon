@@ -33,6 +33,9 @@ jobs:
       - name: Doctor
         run: dungeon doctor
 
+      - name: Every floor manifest is consistent
+        run: python scripts/lint_floors.py
+
       - name: Every trial passes against the reference solutions
         env:
           DUNGEON_SOLUTIONS: "1"

@@ -18,11 +18,12 @@ pip install -e ".[dev]"
 pip install torch --index-url https://download.pytorch.org/whl/cpu
 ```
 
-Two checks must pass before anything merges:
+Three checks must pass before anything merges:
 
 ```bash
 DUNGEON_SOLUTIONS=1 pytest floors        # every trial passes against solutions/
 python scripts/check_stubs_fail.py       # every trial fails against untouched rooms/
+python scripts/lint_floors.py            # every manifest, file, hint and loot path agrees
 ```
 
 `ruff check .` keeps the style consistent.
@@ -121,7 +122,7 @@ file = "loot/optimizers.md"
 blurb = "What it is and why the learner will want it."
 ```
 
-A floor has 3 to 5 regular rooms, exactly one boss, and at most one secret room. Regular rooms plus the boss are required to clear the floor; the secret is a bonus.
+A floor has 3 to 6 regular rooms, exactly one boss, and at most one secret room. Regular rooms plus the boss are required to clear the floor; the secret is a bonus.
 
 ## Writing a room stub (`rooms/`)
 
