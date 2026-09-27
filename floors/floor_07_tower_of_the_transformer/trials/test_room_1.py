@@ -1,8 +1,9 @@
 """TRIAL 7.1 - THE NORM AND THE NONLINEARITY
 
-Three bricks are weighed against PyTorch's own: LayerNorm (outputs and
-gradients), GELU (exact and tanh-approximate) and the MLP (shapes, names,
-parameter count, and whether it can wear the reference's weights).
+Four bricks are weighed against PyTorch's own: LayerNorm and RMSNorm
+(outputs and gradients), GELU (exact and tanh-approximate) and the MLP
+(shapes, names, parameter count, and whether it can wear the reference's
+weights).
 """
 
 import pytest
@@ -118,6 +119,104 @@ def test_layernorm_works_in_float32_where_the_tower_lives():
     x = torch.randn(4, 16, 128)
     diff = (mine(x) - ref(x)).abs().max().item()
     assert diff < 1e-5, f"float32 LayerNorm differs from torch by {diff:.2e}; expected < 1e-5."
+
+
+# --------------------------------------------------------------------- RMSNorm
+def _paired_rmsnorms(ndim, eps=1e-6, dtype=torch.float64):
+    """The learner's RMSNorm and nn.RMSNorm with the same random weight."""
+    mine = room.RMSNorm(ndim, eps=eps).to(dtype)
+    ref = nn.RMSNorm(ndim, eps=eps).to(dtype)
+    with torch.no_grad():
+        mine.weight.copy_(torch.randn(ndim, dtype=dtype))
+    ref.load_state_dict(mine.state_dict())
+    return mine, ref
+
+
+def test_rmsnorm_owns_exactly_ndim_parameters_and_no_bias():
+    rms = room.RMSNorm(16)
+    assert isinstance(rms, nn.Module), "RMSNorm must subclass nn.Module."
+    names = dict(rms.named_parameters())
+    assert set(names) == {"weight"}, (
+        f"RMSNorm owns exactly one parameter, `weight`; found {sorted(names)}. "
+        "There is no bias and nothing to centre with: that is the point of it."
+    )
+    assert names["weight"].shape == (16,), f"weight is (ndim,) = (16,), got {tuple(names['weight'].shape)}."
+    assert torch.all(names["weight"] == 1.0), "A fresh RMSNorm only rescales: weight starts at ones."
+    n = sum(p.numel() for p in room.RMSNorm(48).parameters())
+    assert n == 48, f"RMSNorm(48) has ndim = 48 parameters (LayerNorm has 2 * ndim); yours has {n}."
+
+
+@pytest.mark.parametrize("shape", [(4, 32), (2, 5, 32), (3, 7, 1, 8)], ids=["2d", "3d", "4d"])
+def test_rmsnorm_matches_torch_to_a_millionth(shape):
+    mine, ref = _paired_rmsnorms(shape[-1])
+    x = torch.randn(*shape, dtype=torch.float64) * 3 + 1
+    diff = (mine(x) - ref(x)).abs().max().item()
+    assert diff < 1e-6, (
+        f"RMSNorm output differs from nn.RMSNorm by {diff:.2e} on input shape {shape}. "
+        "Do NOT subtract the mean: y = x * rsqrt(mean(x^2, -1, keepdim=True) + eps) * weight. "
+        "Reduce over the LAST dim only, and eps goes inside the root."
+    )
+
+
+def test_rmsnorm_gradients_match_torch_too():
+    mine, ref = _paired_rmsnorms(24)
+    x = torch.randn(3, 6, 24, dtype=torch.float64)
+    x1 = x.clone().requires_grad_(True)
+    x2 = x.clone().requires_grad_(True)
+    upstream = torch.randn(3, 6, 24, dtype=torch.float64)
+    (mine(x1) * upstream).sum().backward()
+    (ref(x2) * upstream).sum().backward()
+    for name, got, want in [("input", x1.grad, x2.grad), ("weight", mine.weight.grad, ref.weight.grad)]:
+        diff = (got - want).abs().max().item()
+        assert diff < 1e-6, (
+            f"The gradient with respect to the {name} differs from nn.RMSNorm's by {diff:.2e}. "
+            "If the forward matches but the backward does not, you detached something or wrote in place."
+        )
+
+
+def test_rmsnorm_respects_the_eps_it_is_given():
+    mine, ref = _paired_rmsnorms(8, eps=0.1)
+    x = torch.randn(4, 8, dtype=torch.float64) * 1e-2
+    diff = (mine(x) - ref(x)).abs().max().item()
+    assert diff < 1e-6, (
+        f"With eps=0.1 and a tiny input, your RMSNorm differs from torch's by {diff:.2e}. "
+        "Use the eps you were given, added to mean(x^2) BEFORE the square root."
+    )
+
+
+@pytest.mark.parametrize("c", [2.5, 40.0])
+def test_rmsnorm_does_not_care_how_loud_the_input_is(c):
+    rms = room.RMSNorm(32).to(torch.float64)
+    x = torch.randn(3, 5, 32, dtype=torch.float64)
+    diff = (rms(c * x) - rms(x)).abs().max().item()
+    assert diff < 1e-5, (
+        f"RMSNorm(c * x) should equal RMSNorm(x) for c = {c} (up to eps); they differ by {diff:.2e}. "
+        "Dividing by the root mean square removes the scale of the input: that is the norm's job."
+    )
+
+
+def test_rmsnorm_is_not_layernorm_in_disguise():
+    rms = room.RMSNorm(16).to(torch.float64)
+    ln = nn.LayerNorm(16, eps=1e-6, bias=False).to(torch.float64)
+    x = torch.randn(4, 16, dtype=torch.float64) + 3.0  # a healthy non-zero mean per row
+    gap = (rms(x) - ln(x)).abs().max().item()
+    assert gap > 0.1, (
+        f"On rows with mean 3 your RMSNorm and a bias-free LayerNorm agree to {gap:.2e}. "
+        "RMSNorm does not subtract the mean; a vector's mean survives into its output."
+    )
+    centred = x - x.mean(dim=-1, keepdim=True)
+    agree = (rms(centred) - ln(centred)).abs().max().item()
+    assert agree < 1e-6, (
+        f"On rows that already have mean 0 the two norms are the same function, yet they differ by {agree:.2e}. "
+        "With mean 0, var = mean(x^2): check your mean square and your eps."
+    )
+
+
+def test_rmsnorm_works_in_float32_where_the_tower_lives():
+    mine, ref = _paired_rmsnorms(128, dtype=torch.float32)
+    x = torch.randn(4, 16, 128)
+    diff = (mine(x) - ref(x)).abs().max().item()
+    assert diff < 1e-5, f"float32 RMSNorm differs from torch by {diff:.2e}; expected < 1e-5."
 
 
 # ------------------------------------------------------------------------ GELU

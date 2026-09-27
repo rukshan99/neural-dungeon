@@ -17,6 +17,17 @@ LayerNorm is the identity on already-normalised input. eps goes INSIDE the
 square root. The trial compares outputs and gradients with nn.LayerNorm to
 1e-6, so write it with ordinary tensor ops and let autograd do the rest.
 
+RMSNORM is LayerNorm with the centring and the bias removed:
+
+    y = x * rsqrt(mean(x^2, -1, keepdim=True) + eps) * weight
+
+One reduction instead of two, D parameters instead of 2D, the same shape
+contract. On a vector whose mean is already zero it equals a bias-free
+LayerNorm with the same eps; on any other vector it does not. Scaling the
+input by c > 0 leaves the output unchanged (up to eps). Llama and most
+models since use it in place of LayerNorm. The trial compares outputs and
+gradients with nn.RMSNorm(ndim, eps=eps) to 1e-6.
+
 GELU is x * Phi(x), where Phi is the standard normal CDF:
 
     gelu(x)      = 0.5 * x * (1 + erf(x / sqrt(2)))                     exact
@@ -53,6 +64,22 @@ class LayerNorm(nn.Module):
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         """(..., ndim) -> (..., ndim), each trailing vector normalised on its own."""
         raise NotImplementedError("LayerNorm.forward() is unwritten")
+
+
+class RMSNorm(nn.Module):
+    """Root-mean-square normalisation over the last dimension, from scratch.
+
+    One parameter, ``weight`` (ndim,) initialised to ones. No mean
+    subtraction, no bias. Store ``eps`` and use it inside the root. Must
+    match ``nn.RMSNorm(ndim, eps=eps)`` in outputs and gradients to 1e-6.
+    """
+
+    def __init__(self, ndim: int, eps: float = 1e-6):
+        raise NotImplementedError("RMSNorm() is unwritten")
+
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        """(..., ndim) -> (..., ndim): x * rsqrt(mean(x^2) + eps) * weight, per trailing vector."""
+        raise NotImplementedError("RMSNorm.forward() is unwritten")
 
 
 def gelu(x: torch.Tensor) -> torch.Tensor:

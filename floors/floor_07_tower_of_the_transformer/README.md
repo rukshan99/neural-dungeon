@@ -8,17 +8,20 @@
                    │ ☠ THE STUTTERING│   "...was vast, vast, and usually
                    │     SOVEREIGN   │    right. The chronicle records..."
           ┌────────┴────────┬────────┴────────┐
-          │  7.5 THE VOICE  │  ◇ the reading  │
-          │    (decoding)   │  room: the      │
-          │                 │  Accumulated    │
+          │  7.6 THE FOUNDRY│  ◇ the reading  │
+          │    LINE  (data  │  room: the      │
+          │    parallelism) │  Accumulated    │
           ├─────────────────┤  Verse          │
-          │  7.4 THE        ├─────────────────┤
-          │    TRAINING     │                 │
-          ├─────────────────┤   the residual  │
-          │  7.3 THE TOWER  │   stairwell     │
+          │  7.5 THE VOICE  ├─────────────────┤
+          │    (decoding)   │                 │
           ├─────────────────┤                 │
-          │  7.2 THE BLOCK  │   x = x + f(x)  │
+          │  7.4 THE        │   the residual  │
+          │    TRAINING     │   stairwell     │
+          ├─────────────────┤                 │
+          │  7.3 THE TOWER  │   x = x + f(x)  │
           ├─────────────────┤        ▲        │
+          │  7.2 THE BLOCK  │        │        │
+          ├─────────────────┤        │        │
           │  7.1 THE NORM   │        │        │
           │    AND THE      │        │        │
           │   NONLINEARITY  │        │        │
@@ -26,13 +29,13 @@
                    ▲ stairs up from Floor 6
 ```
 
-On Floor 6 you built attention: a way for every position in a sequence to read from the positions before it. Attention on its own is a mechanism, not a model. This floor is where it becomes one. You will build a GPT from the bricks up, load the dungeon's own pretrained Chronicler into it to prove the architecture is exactly right, train a small one on the dungeon's chronicles, and then make it talk.
+On Floor 6 you built attention: a way for every position in a sequence to read from the positions before it. Attention on its own is a mechanism, not a model. This floor is where it becomes one. You will build a GPT from the bricks up, load the dungeon's own pretrained Chronicler into it to prove the architecture is exactly right, train a small one on the dungeon's chronicles, and then make it talk. The last room before the boss steps back from the tower and asks how you would train it if it were ten thousand times bigger and one machine were not enough.
 
 Every large language model you have used is this tower, taller. The layout you build here — token and position embeddings, a stack of identical pre-norm blocks, a final norm, a tied output head, cross-entropy on the next token — is GPT-2's, and it is also, with modest changes (RMSNorm for LayerNorm, rotary embeddings for `wpe`, SwiGLU for the MLP, grouped-query attention), the layout of the models that followed. Knowing it at the level of shapes is the difference between reading a model card and being able to say why a change to one number in it costs what it costs.
 
 The boss at the top does not test your weights. The Chronicler's weights are good: validation loss 0.21 nats per character. Ask it to speak by always taking the most likely character and it says the same sentence forever. The boss is about the last mile — how a distribution over the next token becomes text — and about how to judge that fairly.
 
-**You will learn:** LayerNorm and GELU · the position-wise MLP · causal self-attention with a fused qkv projection · pre-norm residual blocks · the full GPT with weight tying and GPT-2 initialisation · next-token cross-entropy on shifted targets · AdamW, gradient clipping, warmup + cosine · greedy, temperature, top-k and top-p decoding · repetition penalties and n-gram blocking · gradient accumulation (secret room).
+**You will learn:** LayerNorm, RMSNorm and GELU · the position-wise MLP · causal self-attention with a fused qkv projection · pre-norm residual blocks · the full GPT with weight tying and GPT-2 initialisation · next-token cross-entropy on shifted targets · AdamW, gradient clipping, warmup + cosine · greedy, temperature, top-k and top-p decoding · repetition penalties and n-gram blocking · data parallelism: sharding, the all-reduce, `DistributedDataParallel` in real processes, and the map of ZeRO/FSDP, tensor and pipeline parallelism · gradient accumulation (secret room).
 
 **You need:** PyTorch (CPU is plenty: `pip install torch --index-url https://download.pytorch.org/whl/cpu`), Floor 6's attention, and Floor 5's tokenizer ideas. Everything runs in a few seconds on a laptop.
 
@@ -57,6 +60,14 @@ y    = (x - mean) / sqrt(var + eps) * weight + bias
 ```
 
 `weight` and `bias` are `(D,)` learnable vectors, initialised to ones and zeros. Every position is normalised independently — not across the batch (that is BatchNorm, Floor 3's crucible), not across time. LayerNorm's job is to keep the scale of the vectors entering each sub-layer predictable no matter how deep the tower is or how large the residual stream has grown. `eps` (1e-5) lives inside the square root so a constant vector does not divide by zero.
+
+**RMSNorm**, the lighter cousin. Drop the centring and the bias:
+
+```
+y = x / sqrt(mean(x², -1) + eps) * weight              one reduction, D parameters
+```
+
+It is not the same function: on a vector with a non-zero mean the two disagree, and only when the vector already has mean zero (so that `var = mean(x²)`) do they coincide. Both are scale-invariant — `norm(c·x) = norm(x)` for any `c > 0`, up to `eps` — which is the property that actually matters for keeping the residual stream tame. Zhang and Sennrich (2019) showed that the centring can be dropped without hurting training; T5 adopted it, Llama made it the default, and nearly every open model since uses it. The saving per call is small — one fewer reduction over `D`, one fewer subtraction, half the parameters — but it is paid at every sub-layer of every block for every token, and in pre-norm position the model trains just as well without the centring. Room 1 has you build both; the Chronicler's checkpoint uses LayerNorm, so the tower above is built with that one.
 
 ### Brick 2: GELU
 
@@ -177,6 +188,22 @@ The trial checks the boundary values exactly — step 0, the last warmup step, t
 
 **The loop**, every step: set the learning rate on every `param_group`, get a batch, forward, `zero_grad`, `backward`, clip, `step`. Room 4 trains a 2-layer, 64-wide tower for 120 steps on the chronicles: from 4.3 to about 2.4 in a few seconds on a CPU.
 
+### Training on more than one worker
+
+The Chronicler has 819K parameters. In float32 with Adam that is `819K × 16 bytes ≈ 13 MB`, and a laptop trains it in seconds. Scale the same tower to 7 billion parameters and the arithmetic changes character. **The 16 bytes.** Mixed-precision training with Adam keeps, per parameter: the bf16 (or fp16) weight the forward pass computes with (2 bytes), its bf16 gradient (2), a float32 master copy of the weight that the update is actually applied to (4), and Adam's two float32 moments (4 + 4). Sixteen bytes per parameter before a single activation: `7B × 16 = 112 GB`, which does not fit in an 80 GB accelerator. Activations — every intermediate `(B, T, D)` and, without a fused attention kernel, every `(B, H, T, T)` attention map kept for backward — come on top and grow with batch and sequence length. So one device cannot hold the state; and even when it can, one device is too slow for the data, because the largest models read trillions of tokens. Both problems have the same shape of answer: split something across `N` workers and communicate the rest. There are four things to split.
+
+**Data parallelism (room 6).** Split the *data*. Every rank holds a complete replica of the model and the optimizer; the global batch is cut into `N` equal shards; each rank runs forward and backward on its shard; the ranks **all-reduce** their gradients — after the collective, every rank holds the sum of everyone's gradient, in place — and divide by `N`; every rank then takes the same optimizer step, so the replicas stay identical for the whole run. It is exact because of a fact about means: when the loss is a mean over examples and the shards are equal, the mean of the shard gradients *is* the full-batch gradient. Room 6 demands it to 1e-6. The caveat is the same fact read backwards: shards of unequal size need weights proportional to their size, and a loss that is a mean over *tokens* — with padding masked out — gives every rank a different denominator. `DistributedDataParallel` averages the per-rank means regardless, and does not know.
+
+Two consequences. The **effective batch** is `N × per_rank_batch`: with 8 ranks and 32 sequences each, one step sees 256 sequences, and the number of optimizer steps per epoch drops eightfold. That is why the learning rate is usually rescaled when the world grows: the linear scaling rule (Goyal et al., 2017) multiplies the SGD learning rate by the same factor as the batch and adds a warmup to survive the first steps; the square root of the factor is a common, gentler choice for Adam-family optimisers; and in current LLM practice the *global* batch is fixed in tokens (a few million), the per-rank batch is whatever fits, and the learning rate is tuned once for that global batch. The **communication** is one gradient's worth per step no matter how many ranks: a ring all-reduce is a reduce-scatter followed by an all-gather, each moving `(N − 1)/N` of the tensor through every rank, so the total is `2 (N − 1)/N ×` the gradient — bounded by twice its size (28 GB for a 7B model's bf16 gradients) however large `N` gets. That bound is why data parallelism scales.
+
+**What `DistributedDataParallel` does under the hood.** At construction it broadcasts rank 0's parameters and buffers to every rank, so the replicas start identical whatever each process seeded. It registers an autograd hook on every parameter and groups the parameters into **buckets** (25 MB by default, in roughly the reverse of `model.parameters()` order, which is roughly the order backward produces gradients). When every gradient in a bucket has arrived, DDP launches an asynchronous all-reduce of that bucket while backward carries on producing the next: communication overlaps computation, and by the time `loss.backward()` returns every `.grad` already holds the average across ranks. The optimizer then steps as if nothing had happened. `ddp.no_sync()` suspends the reduction, so that under gradient accumulation (the secret room) only the last micro-batch of a window pays for communication.
+
+**When the replica itself does not fit: ZeRO and FSDP.** Data parallelism wastes memory by design — all 16 bytes per parameter are duplicated `N` times. ZeRO (Rajbhandari et al., 2020) shards them instead. Stage 1 shards the optimizer state (12 of the 16 bytes): each rank owns the master copy and Adam moments for `1/N` of the parameters, updates only those, and the updated weights are all-gathered. Stage 2 also shards the gradients: a **reduce-scatter** replaces the all-reduce and leaves each rank holding the reduced gradient of only its own `1/N`. Stage 3 also shards the parameters themselves: each rank stores `1/N` of every layer, **all-gathers** a layer's full weights right before it is needed in forward (and again in backward), and frees them right after. Per-rank memory falls to `16Ψ / N` plus activations, for about 1.5× the communication of plain data parallelism. PyTorch's `FullyShardedDataParallel` is stage 3: you wrap the model in units (one `Block` each is the natural choice for the tower) and each unit is gathered, run and released in turn.
+
+**Tensor parallelism.** Split the *matrices*. Megatron-LM (Shoeybi et al., 2019) cuts each block's MLP so that `fc` is split by columns across the ranks — each holds `4D/N` of the hidden units and applies GELU to its own slice — and `proj` by rows, so that each rank produces a partial sum of the output and one all-reduce restores it; attention is split by heads the same way. That is two all-reduces per block in forward and two in backward, on *activations* of shape `(B, T, D)`, at every micro-step: far more traffic than data parallelism, so tensor parallelism lives inside one node, over its fastest links, typically across 2–8 devices.
+
+**Pipeline parallelism.** Split the *depth*. Blocks 0–11 on one device, 12–23 on the next, and so on; only the `(B, T, D)` activations at the stage boundaries cross the wire, which makes it the cheapest scheme in bandwidth and the natural one across nodes. The price is the **bubble**: with the batch cut into `m` micro-batches flowing through `p` stages, a fraction of about `(p − 1) / (m + p − 1)` of the time some stage sits idle waiting for work (GPipe); PipeDream's 1F1B schedule interleaves forward and backward passes to cap the activation memory the in-flight micro-batches need. The large runs combine all of it — tensor parallel within a node, pipeline across nodes, data parallel across everything, with the optimizer state sharded on top — under the name 3D parallelism. Every dimension of it is the idea you build in room 6: split something, communicate the rest, and check that the arithmetic still gives exactly the one-worker answer.
+
 ### Decoding: from logits to text
 
 At each step the model gives logits `z` `(V,)` for the next token; `p = softmax(z)`. Then:
@@ -208,7 +235,7 @@ Run `dungeon enter 7` to see your progress. Each room is a file in `rooms/`. Rep
 
 ### 7.1 The Norm and the Nonlinearity — `rooms/room_1_norm_and_nonlinearity.py`
 
-The mason's yard at the foot of the tower. `LayerNorm(ndim, eps, bias)` from scratch — its outputs *and gradients* must match `nn.LayerNorm` to 1e-6, so use ordinary tensor ops and let autograd through. `gelu` via `torch.erf`, `gelu_tanh` via the approximation. `MLP(n_embd)` with layers named `fc` and `proj`; the trial loads the reference MLP's weights into yours by name and compares outputs, and counts `8D² + 5D` parameters.
+The mason's yard at the foot of the tower. `LayerNorm(ndim, eps, bias)` from scratch — its outputs *and gradients* must match `nn.LayerNorm` to 1e-6, so use ordinary tensor ops and let autograd through. `RMSNorm(ndim, eps)`: the same contract against `nn.RMSNorm`, with exactly `ndim` parameters and no bias; the trial also checks it shrugs at the input's scale and that it is *not* LayerNorm in disguise (the two must disagree on rows with a non-zero mean and agree on centred ones). `gelu` via `torch.erf`, `gelu_tanh` via the approximation. `MLP(n_embd)` with layers named `fc` and `proj`; the trial loads the reference MLP's weights into yours by name and compares outputs, and counts `8D² + 5D` parameters.
 
 ```
 dungeon trial 7 room_1
@@ -244,6 +271,14 @@ dungeon trial 7 room_4
 
 ```
 dungeon trial 7 room_5
+```
+
+### 7.6 The Foundry Line — `rooms/room_6_the_foundry_line.py`
+
+The same blueprint in every workshop, a different heap of stone at each bench. `shard_batch` cuts equal contiguous shards along the batch axis and refuses uneven ones; `average_gradients` and `weighted_average_gradients` combine per-rank `{name: grad}` dicts; `simulated_data_parallel_step` runs `world_size` ranks one after another on a *single* model (fresh `zero_grad` per rank, same weights) and must reproduce the full-batch gradient to 1e-6. The trial then cuts a batch of 8 into shards of 2 and 6 and shows that the plain mean is wrong and the size-weighted mean is right. Then the real thing, in real processes: `worker` joins a gloo process group through a file rendezvous, differentiates its shard of a tiny GPT, `all_reduce`s each gradient and divides by `world_size`; `ddp_worker` wraps the model in `DistributedDataParallel` and lets it reduce during `backward`; `launch_data_parallel` spawns two processes with `torch.multiprocessing.spawn`, waits with a deadline, and returns rank 0's gradients, which must equal one process's full-batch gradient to 1e-5. Everything runs on the CPU in a few seconds.
+
+```
+dungeon trial 7 room_6
 ```
 
 ---
@@ -286,10 +321,11 @@ dungeon trial 7 --secret
 
 ## Loot
 
-Clear the five rooms and defeat the Sovereign to unlock:
+Clear the six rooms and defeat the Sovereign to unlock:
 
 - **The GPT Skeleton** — `loot/gpt_skeleton.py`. The whole tower, a training loop and a sampler in one heavily annotated file that runs on any text file. Start your next project from it.
 - **Decoding Cheat Sheet** — `loot/decoding_cheat_sheet.md`. Greedy, temperature, top-k, top-p, repetition penalty, no-repeat n-grams, beam search: what each does, when to use which, the diversity-vs-fluency trade-off, and the prompt-cropping rule.
+- **Scaling Training Cheat Sheet** — `loot/scaling_training_cheat_sheet.md`. The 16 bytes per parameter, the four ways to split a training run and what each one sends over the wire, the rules that keep data parallelism exact, a CPU-only DDP skeleton, and how to read a hang.
 
 ## Stuck?
 

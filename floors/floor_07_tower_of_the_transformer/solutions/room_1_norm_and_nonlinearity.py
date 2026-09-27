@@ -2,9 +2,10 @@
 
 Spoilers below. The stub you are meant to edit is in ../rooms/.
 
-Three small pieces that every block of the tower is built from: LayerNorm,
-GELU and the two-layer MLP. Each one is a few lines; the trials check them
-against PyTorch's own to 1e-6 (outputs *and* gradients for LayerNorm).
+Four small pieces that every block of the tower is built from: LayerNorm,
+its lighter cousin RMSNorm, GELU and the two-layer MLP. Each one is a few
+lines; the trials check them against PyTorch's own to 1e-6 (outputs *and*
+gradients for the two norms).
 """
 
 from __future__ import annotations
@@ -39,6 +40,28 @@ class LayerNorm(nn.Module):
         if self.bias is not None:
             out = out + self.bias
         return out
+
+
+class RMSNorm(nn.Module):
+    """LayerNorm without the centring and without the bias.
+
+    y = x / sqrt(mean(x^2) + eps) * weight
+
+    The mean square is taken over the last dim only, per position. Nothing
+    is subtracted, so a vector's mean survives into the output (LayerNorm's
+    does not), and there is one learnable vector instead of two. This is
+    the norm of Llama and most models after it: one reduction instead of
+    two, and it trains as well in pre-norm position.
+    """
+
+    def __init__(self, ndim: int, eps: float = 1e-6):
+        super().__init__()
+        self.eps = eps
+        self.weight = nn.Parameter(torch.ones(ndim))
+
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        mean_square = x.pow(2).mean(dim=-1, keepdim=True)
+        return x * torch.rsqrt(mean_square + self.eps) * self.weight
 
 
 def gelu(x: torch.Tensor) -> torch.Tensor:
