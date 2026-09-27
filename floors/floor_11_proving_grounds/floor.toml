@@ -1,0 +1,88 @@
+id = "floor_11"
+number = 11
+slug = "proving_grounds"
+name = "The Proving Grounds"
+tagline = "Every champion below has a number. Almost none of the numbers mean what they say."
+topics = ["classification metrics", "perplexity", "bootstrap confidence intervals", "LLM-as-judge", "eval harnesses", "Goodhart's law", "calibration"]
+requires = []
+
+map = '''
+            ▼ stairs from Floor 10
+            │
+   ┌────────┴────────┐     ┌──────────────────┐     ┌──────────────────┐
+   │ 11.1 THE SCALES │─────│ 11.2 THE BOOT-   │─────│ 11.3 THE JUDGE'S │
+   │                 │     │   STRAP ORACLE   │     │      BENCH       │
+   └─────────────────┘     └──────────────────┘     └────────┬─────────┘
+                                                             │
+   ┌─────────────────┐     ┌──────────────────┐              │
+   │ ☠ THE GORGON'S  │─────│ 11.4 THE GOLDEN  │──────────────┘
+   │     ARENA       │     │      TRIALS      │
+   └────────┬────────┘     └──────────────────┘
+            ┆  ◇ a glint behind a loose stone: the Calibration Mirror
+            ▼  stairs down to Floor 12
+'''
+
+[lines]
+room_cleared = "The scales settle. For once, a number you can trust."
+room_failed = "The arena crowd murmurs. That number means less than you think it does."
+boss_intro = "Something with snakes for hair walks into the arena and looks at your leaderboard. Every metric she stares at hardens into a target, and every champion learns to hit it without getting one bit better."
+boss_defeated = "The Gorgon's stare finds nothing to harden. You read every number twice and trusted none of them alone."
+floor_cleared = "The Proving Grounds fall quiet. Whatever you build from here on, you will know whether it works."
+
+[[rooms]]
+id = "room_1"
+name = "The Scales"
+kind = "room"
+file = "rooms/room_1_the_scales.py"
+trial = "trials/test_room_1.py"
+blurb = "Confusion matrix, precision, recall, F1, balanced accuracy, perplexity. Then a 95%-accurate champion who has learned nothing."
+
+[[rooms]]
+id = "room_2"
+name = "The Bootstrap Oracle"
+kind = "room"
+file = "rooms/room_2_bootstrap_oracle.py"
+trial = "trials/test_room_2.py"
+blurb = "Resample fate: bootstrap confidence intervals, paired comparisons, and a prophecy about which gaps n=50 can see."
+
+[[rooms]]
+id = "room_3"
+name = "The Judge"
+kind = "room"
+file = "rooms/room_3_the_judge.py"
+trial = "trials/test_room_3.py"
+blurb = "Rubrics, robust parsing, a judge with a favourite corner and the swap that exposes her. Kappa and Spearman against humans."
+
+[[rooms]]
+id = "room_4"
+name = "Golden Trials"
+kind = "room"
+file = "rooms/room_4_golden_trials.py"
+trial = "trials/test_room_4.py"
+blurb = "An eval harness: cases, scorers, per-tag reports, JSON baselines and a regression check that names what broke."
+
+[[rooms]]
+id = "boss"
+name = "The Goodhart Gorgon"
+kind = "boss"
+file = "rooms/boss_goodhart_gorgon.py"
+trial = "trials/test_boss.py"
+blurb = "Her stare turns metrics into targets. Three champions game three numbers; catch every one with a second number."
+
+[[rooms]]
+id = "secret"
+name = "The Calibration Mirror"
+kind = "secret"
+file = "rooms/secret_calibration_mirror.py"
+trial = "trials/test_secret.py"
+blurb = "Expected calibration error, reliability tables and temperature scaling: is 90% confident right 90% of the time?"
+
+[[loot]]
+name = "Eval Harness"
+file = "loot/eval_harness.py"
+blurb = "A clean, importable EvalCase/EvalSuite/report/regression toolkit with bootstrap intervals and a swap-debiased pairwise judge."
+
+[[loot]]
+name = "Evaluation Cheat Sheet"
+file = "loot/evaluation_cheat_sheet.md"
+blurb = "Every metric with its formula and when it lies, the CI rule of thumb, a judge design checklist, eval hygiene and a Goodhart failure catalogue."
