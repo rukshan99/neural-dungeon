@@ -10,6 +10,7 @@
     dungeon loot            what you have unlocked
     dungeon status          your rank and numbers
     dungeon doctor          check your environment
+    dungeon serve           play in the browser
     dungeon reset           forget everything (asks first)
 """
 
@@ -43,11 +44,11 @@ def _module_available(name: str) -> bool:
     return importlib.util.find_spec(name) is not None
 
 
-def _missing_requirements(floor: Floor) -> list[str]:
+def missing_requirements(floor: Floor) -> list[str]:
     return [m for m in floor.requires if not _module_available(m)]
 
 
-def _install_hint(missing: list[str]) -> str:
+def install_hint(missing: list[str]) -> str:
     if "torch" in missing:
         return (
             "Install PyTorch (CPU is plenty):\n"
@@ -79,29 +80,6 @@ def _progress_bar(status: prog.FloorStatus, data: dict) -> str:
     return "".join(cells)
 
 
-RANKS = [
-    (0.00, "Wanderer at the Threshold"),
-    (0.08, "Apprentice of the Descent"),
-    (0.20, "Keeper of Gradients"),
-    (0.32, "Layer-Smith"),
-    (0.45, "Token Scribe"),
-    (0.55, "Warden of a Thousand Heads"),
-    (0.65, "Tower Climber"),
-    (0.75, "Librarian of Echoes"),
-    (0.85, "Prompt Weaver"),
-    (0.95, "Engineer of the Deep"),
-    (1.00, "Dungeon Master"),
-]
-
-
-def _rank(fraction: float) -> str:
-    title = RANKS[0][1]
-    for threshold, name in RANKS:
-        if fraction >= threshold:
-            title = name
-    return title
-
-
 # ----------------------------------------------------------------------------
 # commands
 # ----------------------------------------------------------------------------
@@ -130,7 +108,7 @@ def cmd_map(args: argparse.Namespace, root: Path) -> int:
         if not status.cleared and not you_are_here_done:
             marker = ui.cyan(ui.bold("  <- you are here"))
             you_are_here_done = True
-        missing = _missing_requirements(floor)
+        missing = missing_requirements(floor)
         if missing:
             state += ui.dim(f"  (needs {', '.join(missing)})")
         rows.append(f"{ui.pad(name, 38)} {ui.pad(bar, 10)} {state}{marker}")
@@ -156,11 +134,11 @@ def cmd_enter(args: argparse.Namespace, root: Path) -> int:
     if floor.topics:
         print()
         print("  " + ui.dim("you will learn: ") + ", ".join(floor.topics))
-    missing = _missing_requirements(floor)
+    missing = missing_requirements(floor)
     if missing:
         print()
         print(ui.yellow(f"  This floor needs: {', '.join(missing)}"))
-        print(ui.yellow("  " + _install_hint(missing).replace("\n", "\n  ")))
+        print(ui.yellow("  " + install_hint(missing).replace("\n", "\n  ")))
     if floor.map_art:
         print()
         print(ui.cyan(floor.map_art))
@@ -214,10 +192,10 @@ def _run_pytest(root: Path, paths: list[Path], extra: list[str], verbose: bool) 
 
 def cmd_trial(args: argparse.Namespace, root: Path, boss: bool = False) -> int:
     floor = resolve_floor(args.floor, root)
-    missing = _missing_requirements(floor)
+    missing = missing_requirements(floor)
     if missing:
         print(ui.red(f"  Floor {floor.number} needs {', '.join(missing)} before its trials can run."))
-        print(ui.yellow("  " + _install_hint(missing).replace("\n", "\n  ")))
+        print(ui.yellow("  " + install_hint(missing).replace("\n", "\n  ")))
         return 2
 
     rooms: list[Room]
@@ -317,30 +295,17 @@ def cmd_loot(args: argparse.Namespace, root: Path) -> int:
 
 
 def cmd_status(args: argparse.Namespace, root: Path) -> int:
-    floors = load_floors(root)
-    data = prog.load(root)
-    statuses = [prog.floor_status(f, data) for f in floors]
-    floors_cleared = sum(s.cleared for s in statuses)
-    rooms_total = sum(len(f.regular_rooms) for f in floors)
-    rooms_done = sum(len(s.cleared_rooms) for s in statuses)
-    bosses_total = sum(1 for f in floors if f.boss)
-    bosses_done = sum(s.boss_defeated for s in statuses)
-    secrets_total = sum(1 for f in floors if f.secret)
-    secrets_done = sum(s.secret_found for s in statuses)
-    hints_used = sum(int(v) for v in data["hints"].values())
-    attempts = sum(int(e.get("attempts", 0)) for e in data["trials"].values())
-    required_total = rooms_total + bosses_total
-    fraction = (rooms_done + bosses_done) / required_total if required_total else 0.0
+    s = prog.summarize(load_floors(root), prog.load(root))
 
     print(ui.title("STATUS"))
-    print(f"  Rank            {ui.bold(ui.magenta(_rank(fraction)))}")
-    print(f"  Floors cleared  {floors_cleared}/{len(floors)}")
-    print(f"  Rooms cleared   {rooms_done}/{rooms_total}")
-    print(f"  Bosses defeated {bosses_done}/{bosses_total}")
-    print(f"  Secrets found   {secrets_done}/{secrets_total}")
-    print(f"  Trial attempts  {attempts}")
-    print(f"  Hints used      {hints_used}")
-    if fraction >= 1.0:
+    print(f"  Rank            {ui.bold(ui.magenta(s.rank))}")
+    print(f"  Floors cleared  {s.floors_cleared}/{s.floors_total}")
+    print(f"  Rooms cleared   {s.rooms_done}/{s.rooms_total}")
+    print(f"  Bosses defeated {s.bosses_done}/{s.bosses_total}")
+    print(f"  Secrets found   {s.secrets_done}/{s.secrets_total}")
+    print(f"  Trial attempts  {s.attempts}")
+    print(f"  Hints used      {s.hints_used}")
+    if s.fraction >= 1.0:
         print()
         print(ui.green(ui.bold("  You have cleared the dungeon. Go outside; the surface has missed you.")))
     return 0
@@ -371,7 +336,7 @@ def cmd_doctor(args: argparse.Namespace, root: Path) -> int:
         device = "cuda" if cuda else ("mps" if mps else "cpu")
         check("torch", True, f"{torch.__version__}  device: {device}" + (" (CPU is fine for every floor)" if device == "cpu" else ""))
     except Exception:
-        print(f"  {ui.yellow('-- ')} {'torch':<22} not installed - needed from floor 4 on. " + _install_hint(['torch']).splitlines()[1].strip())
+        print(f"  {ui.yellow('-- ')} {'torch':<22} not installed - needed from floor 4 on. " + install_hint(['torch']).splitlines()[1].strip())
     check("dungeon root", True, str(root))
     floors = load_floors(root)
     check("floors", len(floors) > 0, f"{len(floors)} found")
@@ -383,6 +348,16 @@ def cmd_doctor(args: argparse.Namespace, root: Path) -> int:
     else:
         print(ui.red("  Fix the items marked !! and run `dungeon doctor` again."))
     return 0 if ok else 1
+
+
+def cmd_serve(args: argparse.Namespace, root: Path) -> int:
+    try:
+        from dungeon.web.server import serve
+    except ImportError:
+        print(ui.red("  The browser needs two more packages:"))
+        print(ui.yellow('    pip install -e ".[web]"'))
+        return 2
+    return serve(root, port=args.port, open_browser=not args.no_browser)
 
 
 def cmd_reset(args: argparse.Namespace, root: Path) -> int:
@@ -446,6 +421,10 @@ def build_parser() -> argparse.ArgumentParser:
     sub.add_parser("status", help="your rank and numbers")
     sub.add_parser("doctor", help="check that your environment can play")
 
+    p = sub.add_parser("serve", help="play in the browser (local server on 127.0.0.1)")
+    p.add_argument("--port", type=int, default=8642)
+    p.add_argument("--no-browser", action="store_true", help="do not open a browser tab")
+
     p = sub.add_parser("reset", help="forget progress")
     p.add_argument("floor", nargs="?", help="only this floor")
     p.add_argument("-y", "--yes", action="store_true", help="do not ask")
@@ -461,6 +440,7 @@ COMMANDS = {
     "loot": cmd_loot,
     "status": cmd_status,
     "doctor": cmd_doctor,
+    "serve": cmd_serve,
     "reset": cmd_reset,
 }
 

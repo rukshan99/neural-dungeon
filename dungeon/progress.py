@@ -197,3 +197,67 @@ def floor_status(floor: Floor, data: dict | None = None, root: Path | None = Non
         secret_found=secret_found,
         started=started,
     )
+
+
+# ------------------------------------------------------------ whole-dungeon
+
+RANKS = [
+    (0.00, "Wanderer at the Threshold"),
+    (0.08, "Apprentice of the Descent"),
+    (0.20, "Keeper of Gradients"),
+    (0.32, "Layer-Smith"),
+    (0.45, "Token Scribe"),
+    (0.55, "Warden of a Thousand Heads"),
+    (0.65, "Tower Climber"),
+    (0.75, "Librarian of Echoes"),
+    (0.85, "Prompt Weaver"),
+    (0.95, "Engineer of the Deep"),
+    (1.00, "Dungeon Master"),
+]
+
+
+def rank(fraction: float) -> str:
+    title = RANKS[0][1]
+    for threshold, name in RANKS:
+        if fraction >= threshold:
+            title = name
+    return title
+
+
+@dataclass
+class Summary:
+    floors_total: int
+    floors_cleared: int
+    rooms_total: int
+    rooms_done: int
+    bosses_total: int
+    bosses_done: int
+    secrets_total: int
+    secrets_done: int
+    attempts: int
+    hints_used: int
+
+    @property
+    def fraction(self) -> float:
+        required = self.rooms_total + self.bosses_total
+        return (self.rooms_done + self.bosses_done) / required if required else 0.0
+
+    @property
+    def rank(self) -> str:
+        return rank(self.fraction)
+
+
+def summarize(floors: list[Floor], data: dict) -> Summary:
+    statuses = [floor_status(f, data) for f in floors]
+    return Summary(
+        floors_total=len(floors),
+        floors_cleared=sum(s.cleared for s in statuses),
+        rooms_total=sum(len(f.regular_rooms) for f in floors),
+        rooms_done=sum(len(s.cleared_rooms) for s in statuses),
+        bosses_total=sum(1 for f in floors if f.boss),
+        bosses_done=sum(s.boss_defeated for s in statuses),
+        secrets_total=sum(1 for f in floors if f.secret),
+        secrets_done=sum(s.secret_found for s in statuses),
+        attempts=sum(int(e.get("attempts", 0)) for e in data["trials"].values()),
+        hints_used=sum(int(v) for v in data["hints"].values()),
+    )
