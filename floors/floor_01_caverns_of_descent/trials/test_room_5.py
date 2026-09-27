@@ -113,6 +113,21 @@ def test_adam_matches_the_reference_step_by_step():
         np.testing.assert_allclose(p, p_ref, rtol=1e-10, err_msg=f"step {k + 1}: params <- params - lr m_hat / (sqrt(v_hat) + eps)")
 
 
+def test_adam_reads_its_hyperparameters_instead_of_hardcoding_them():
+    p = rng.standard_normal(3)
+    hp = {"lr": 0.02, "beta1": 0.5, "beta2": 0.9, "eps": 1e-3}
+    state = {}
+    p_ref, m_ref, v_ref, t_ref = p.copy(), np.zeros(3), np.zeros(3), 0
+    for k in range(4):
+        g = rng.standard_normal(3)
+        p, state = room.adam_step(p, g, state, hp)
+        p_ref, m_ref, v_ref, t_ref = _ref_adam(p_ref, g, m_ref, v_ref, t_ref, lr=0.02, b1=0.5, b2=0.9, eps=1e-3)
+        np.testing.assert_allclose(p, p_ref, rtol=1e-10, err_msg=(
+            f"step {k + 1}: with beta1=0.5, beta2=0.9, eps=1e-3 in hparams the update differs from the reference. "
+            "Read them with hparams.get('beta1', 0.9) and friends; the defaults are defaults, not constants."
+        ))
+
+
 def test_adams_first_step_is_lr_in_every_coordinate_whatever_the_scale():
     p = np.zeros(3)
     g = np.array([1e-3, 5.0, -100.0])

@@ -42,11 +42,11 @@ intended g / |g|. Dividing by (1 - beta^t) undoes the shrinkage; with it, the
 very first Adam step moves every coordinate by almost exactly lr, whatever
 the gradient's scale. That scale-independence is Adam's whole appeal.
 
-Why momentum wins on a narrow valley: with the best possible fixed lr, plain
-GD on a quadratic needs about kappa * log(1/tol) steps, where kappa is the
+Why momentum wins on a narrow valley: with the best fixed lr, plain GD on a
+quadratic needs about (kappa / 2) * log(1/tol) steps, where kappa is the
 condition number. Heavy ball with the right beta needs about
-sqrt(kappa) * log(1/tol). For kappa = 100 that is 10x fewer, and the trial
-makes you watch it happen.
+(sqrt(kappa) / 2) * log(1/tol). For kappa = 100 that is 10x fewer, and the
+trial makes you watch it happen.
 """
 
 from __future__ import annotations

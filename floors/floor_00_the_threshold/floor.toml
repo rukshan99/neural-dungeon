@@ -75,7 +75,7 @@ name = "The Einsum Oubliette"
 kind = "secret"
 file = "rooms/secret_einsum_oubliette.py"
 trial = "trials/test_secret.py"
-blurb = "A cell where only one incantation is permitted: einsum. Express six operations with it."
+blurb = "A cell where only one incantation is permitted: einsum. Express seven operations with it."
 
 [[loot]]
 name = "Grimoire of Shapes and Broadcasting"

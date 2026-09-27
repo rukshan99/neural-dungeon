@@ -28,6 +28,22 @@ def he_mlp(sizes, rng):
     return room.Sequential(layers)
 
 
+class LossSpy:
+    """Wraps Room 1's SoftmaxCrossEntropy and records (batch loss, batch size) for every forward."""
+
+    def __init__(self):
+        self.inner = anvil.SoftmaxCrossEntropy()
+        self.seen = []
+
+    def forward(self, logits, y):
+        value = self.inner.forward(logits, y)
+        self.seen.append((value, len(y)))
+        return value
+
+    def backward(self):
+        return self.inner.backward()
+
+
 class ModeSpy:
     """A parameter-free layer that only records which mode it was in when forward ran."""
 
@@ -204,10 +220,20 @@ def test_train_pumps_one_batch_at_a_time():
     calls = []
     original = model.forward
     model.forward = lambda x: (calls.append(len(x)), original(x))[1]
-    history = room.train(model, anvil.SoftmaxCrossEntropy(), room.SGD(model.params(), 0.1), X, y, epochs=2, batch_size=10, rng=rng)
+    loss = LossSpy()
+    history = room.train(model, loss, room.SGD(model.params(), 0.1), X, y, epochs=2, batch_size=10, rng=rng)
     assert len(history) == 2, f"one loss per epoch: expected 2, got {len(history)}"
     assert len(calls) == 2 * math.ceil(45 / 10), f"45 examples, batch 10 -> 5 forwards per epoch; saw {len(calls)} over 2 epochs"
     assert sorted(calls[:5]) == [5, 10, 10, 10, 10], f"batch sizes in one epoch should be four 10s and a 5, got {sorted(calls[:5])}"
+    # The epoch's loss is the per-EXAMPLE mean: weight each batch loss by its size, so the short last batch counts for 5/45, not 1/5.
+    first_epoch = loss.seen[:5]
+    weighted = sum(v * n for v, n in first_epoch) / 45
+    unweighted = sum(v for v, _ in first_epoch) / 5
+    assert math.isclose(history[0], weighted, rel_tol=1e-9), (
+        f"epoch loss must be sum(batch_loss * len(idx)) / n = {weighted:.6f}, got {history[0]:.6f}"
+        + (" (that is the plain mean of the five batch losses, which over-weights the short last batch)."
+           if math.isclose(history[0], unweighted, rel_tol=1e-9) else ".")
+    )
 
 
 def test_the_bellows_teach_a_small_mlp_the_spirals():

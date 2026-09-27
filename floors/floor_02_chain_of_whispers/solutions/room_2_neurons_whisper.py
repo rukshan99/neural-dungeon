@@ -86,7 +86,7 @@ def mse_loss(preds: list[Value], targets: list[float]) -> Value:
     return total * (1.0 / len(preds))
 
 
-def train_xor(steps: int = 300, lr: float = 0.1, seed: int = 0) -> tuple[MLP, list[float]]:
+def train_xor(steps: int = 200, lr: float = 0.1, seed: int = 0) -> tuple[MLP, list[float]]:
     """Train MLP(2, [8, 1]) on XOR with plain SGD. Returns (model, loss per step)."""
     rng = np.random.default_rng(seed)
     model = MLP(2, [8, 1], rng)

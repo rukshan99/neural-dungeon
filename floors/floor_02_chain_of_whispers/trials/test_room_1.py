@@ -66,7 +66,8 @@ def test_plain_numbers_are_welcome_on_either_side():
 def test_neg_and_sub_are_built_on_the_engine():
     a = Value(1.5)
     y = -a
-    assert y.data == -1.5 and a in y._prev or any(a in p._prev for p in y._prev), (
+    assert y.data == -1.5, f"-a at a = 1.5 should be -1.5, got {y.data}"
+    assert a in y._prev or any(a in p._prev for p in y._prev), (
         "-a must be part of the graph (built from Value operations), not a detached Value(-a.data)."
     )
     b = Value(0.5)

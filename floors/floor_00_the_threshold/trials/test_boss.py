@@ -130,6 +130,23 @@ def test_phase_2_petrified_zeroes_whole_feature_vectors():
     assert out.shape == x.shape
     assert np.all(out[mask] == 0.0), "Masked positions should be all-zero vectors."
     np.testing.assert_array_equal(out[~mask], x[~mask])
+    # "Works for any number of leading dims": a single sequence (T, D) with a (T,) mask,
+    # and a 4-D batch. mask[:, :, None] passes the case above and fails both of these.
+    for x_nd, mask_nd in (
+        (rng.random((5, 3)) + 1.0, np.array([True, False, True, False, False])),
+        (rng.random((2, 3, 4, 6)) + 1.0, rng.random((2, 3, 4)) < 0.5),
+    ):
+        try:
+            out_nd = boss.petrified(x_nd, mask_nd)
+        except (IndexError, ValueError) as exc:
+            pytest.fail(
+                f"petrified failed on x {x_nd.shape} with mask {mask_nd.shape}: {exc}. It must work for any number "
+                "of leading dims: insert the missing last axis with mask[..., None], not with a fixed number of colons."
+            )
+        assert out_nd.shape == x_nd.shape, f"x {x_nd.shape}, mask {mask_nd.shape}: output shape {out_nd.shape} should match x."
+        assert np.all(out_nd[mask_nd] == 0.0) and np.array_equal(out_nd[~mask_nd], x_nd[~mask_nd]), (
+            f"x {x_nd.shape}, mask {mask_nd.shape}: masked vectors must be zero and the rest untouched."
+        )
 
 
 # --------------------------------------------------------------------- phase 3

@@ -60,7 +60,7 @@ x.max(axis=-1).shape                # (2, 3)      -1 is always "the last axis"
 
 ### Reshape reinterprets; transpose reorders
 
-- `reshape` keeps the elements in the same order and regroups them. It never moves data. `x.reshape(B, -1)` lets numpy compute one dimension.
+- `reshape` keeps the elements in the same order and regroups them. It never reorders anything, and on a contiguous array it never copies. `x.reshape(B, -1)` lets numpy compute one dimension.
 - `transpose` changes which axis comes first. The elements you see move.
 
 These are different operations that both change `shape`. Using `reshape` where you needed `transpose` produces no error and scrambled data. Channels-last `(B, H, W, C)` to channels-first `(B, C, H, W)` is `x.transpose(0, 3, 1, 2)`. Always.
@@ -141,7 +141,7 @@ dungeon trial 0 room_3
 
 ### 0.4 The Speedrun Gallery — `rooms/room_4_speedrun_gallery.py`
 
-Four paintings of a tiny figure running the same corridor forever. The corridor is a Python loop. The trial file contains the slow loops; you write the fast versions. Correctness first, then a race: yours must be at least 20x faster than the loop *on your machine*.
+Four paintings of a tiny figure running the same corridor forever. The corridor is a Python loop. The trial file contains the slow loops; you write the fast versions. Correctness first, then a race: yours must be at least 10x faster than the loop *on your machine*.
 
 One of the four (`softmax_rows`) is also your first meeting with numerical stability: `exp(1000.0)` is `inf`, and the fix (subtract the row max) will follow you down every floor with a softmax in it.
 

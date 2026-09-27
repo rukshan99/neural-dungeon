@@ -124,6 +124,21 @@ def test_binary_cross_entropy_gradient_matches_the_oracle():
     )
 
 
+def test_binary_cross_entropy_gradient_is_finite_at_certainty():
+    # The docstring promises the gradient is evaluated at the CLIPPED p, so p = 0 or 1 must not divide by zero.
+    p = np.array([0.0, 1.0, 0.0, 1.0])
+    y = np.array([1.0, 0.0, 0.0, 1.0])
+    grad = _finite_or_fail(lambda: room.binary_cross_entropy_grad(p, y), "binary_cross_entropy_grad at p in {0, 1}")
+    assert np.shape(grad) == p.shape and np.all(np.isfinite(grad)), (
+        f"(p - y) / (p (1 - p)) divides by zero at p = 0 or 1; got {grad}. Clip p into [eps, 1 - eps] first, as the loss does."
+    )
+    pc = np.clip(p, 1e-7, 1.0 - 1e-7)
+    np.testing.assert_allclose(grad, (pc - y) / (pc * (1.0 - pc)) / p.size, rtol=1e-6, err_msg=(
+        "At the clipped p the two confidently wrong elements have gradient magnitude ~1e7 / N and the two "
+        "confidently right ones ~1 / N: evaluate (p - y) / (p (1 - p)) / N at the SAME clipped p the loss uses."
+    ))
+
+
 def test_sigmoid_is_stable_at_both_ends():
     z = np.array([-1000.0, -20.0, 0.0, 20.0, 1000.0])
     s = _finite_or_fail(lambda: room.sigmoid(z), "sigmoid")

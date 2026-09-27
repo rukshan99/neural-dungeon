@@ -67,31 +67,32 @@ def test_add_batch_axis_makes_a_batch_of_one():
     assert np.shares_memory(out, x) or np.array_equal(out[0], x)
 
 
-def _prophecy_cases():
-    return list(room.SHAPE_PROPHECY.items())
+# The trial owns the list of expressions: only these strings are ever evaluated,
+# whatever the room's dictionary happens to contain.
+PROPHECY_KEYS = [
+    "np.zeros((3, 4)).T",
+    "np.zeros((2, 3, 4)).reshape(6, -1)",
+    "np.zeros((5,))[:, None]",
+    "np.zeros((2, 3, 4)).sum(axis=1)",
+    "np.zeros((2, 3, 4)).mean(axis=(0, 2))",
+    "np.zeros((2, 3, 4)).sum(axis=1, keepdims=True)",
+    "np.zeros((3, 1, 4)) + np.zeros((5, 4))",
+    "np.zeros((4, 3)) @ np.zeros((3, 2))",
+    "np.zeros((2, 3, 4)).transpose(2, 0, 1)",
+    "np.zeros((6,))[None, :, None]",
+]
 
 
-@pytest.mark.parametrize("expression,prediction", _prophecy_cases(), ids=[e for e, _ in _prophecy_cases()])
-def test_the_prophecy_holds(expression, prediction):
+@pytest.mark.parametrize("expression", PROPHECY_KEYS, ids=PROPHECY_KEYS)
+def test_the_prophecy_holds(expression):
+    prediction = room.SHAPE_PROPHECY.get(expression)
     if prediction is None:
         raise NotImplementedError(f"You have not prophesied {expression!r}. Fill in SHAPE_PROPHECY.")
-    actual = eval(expression, {"np": np}).shape  # noqa: S307 - expressions are ours
+    actual = eval(expression, {"np": np}).shape  # noqa: S307 - PROPHECY_KEYS above are the trial's own strings
     assert tuple(prediction) == actual, (
         f"The prophecy said {tuple(prediction)} for {expression}, but the machine produced {actual}."
     )
 
 
 def test_the_prophecy_is_complete():
-    expected_keys = {
-        "np.zeros((3, 4)).T",
-        "np.zeros((2, 3, 4)).reshape(6, -1)",
-        "np.zeros((5,))[:, None]",
-        "np.zeros((2, 3, 4)).sum(axis=1)",
-        "np.zeros((2, 3, 4)).mean(axis=(0, 2))",
-        "np.zeros((2, 3, 4)).sum(axis=1, keepdims=True)",
-        "np.zeros((3, 1, 4)) + np.zeros((5, 4))",
-        "np.zeros((4, 3)) @ np.zeros((3, 2))",
-        "np.zeros((2, 3, 4)).transpose(2, 0, 1)",
-        "np.zeros((6,))[None, :, None]",
-    }
-    assert set(room.SHAPE_PROPHECY) == expected_keys, "Do not remove or rename the prophecy's expressions."
+    assert set(room.SHAPE_PROPHECY) == set(PROPHECY_KEYS), "Do not remove or rename the prophecy's expressions."

@@ -128,8 +128,8 @@ def test_standardize_features_returns_zero_mean_unit_std_and_the_statistics():
     assert X_std.shape == X.shape
     np.testing.assert_allclose(X_std.mean(axis=0), 0.0, atol=1e-10)
     np.testing.assert_allclose(X_std.std(axis=0), 1.0, atol=1e-6)
-    np.testing.assert_allclose(mean, X.mean(axis=0)), "mean must be the column means (shape (D,))."
-    np.testing.assert_allclose(std, X.std(axis=0)), "std must be the column stds (shape (D,))."
+    np.testing.assert_allclose(mean, X.mean(axis=0), err_msg="mean must be the column means (shape (D,)).")
+    np.testing.assert_allclose(std, X.std(axis=0), err_msg="std must be the column stds (shape (D,)).")
 
 
 # ------------------------------------------------------------------ the fit

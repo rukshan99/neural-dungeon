@@ -236,7 +236,7 @@ dungeon trial 2 room_3
 
 ### 2.4 The Cursed Backward — `rooms/room_4_cursed_backward.py`
 
-A complete autograd engine someone left running. It has **exactly six bugs**. The trial has one targeted test per curse whose message describes the symptom (a whisper that never arrives, a derivative louder than it can be, a node that hears one message instead of two) but never the fix. Two curses are in the derivatives you would expect; two are in `backward()` itself. Gradient-check your way through it. When all six are lifted, an integration test compares the whole engine with finite differences.
+A complete autograd engine someone left running. It has **exactly six bugs**. The trial has one targeted test per curse whose message describes the symptom (a whisper that never arrives, a derivative louder than it can be, a node that hears one message instead of two) but never the fix. Four curses are in the operators' backward closures; two are in `backward()` itself. Gradient-check your way through it. When all six are lifted, an integration test compares the whole engine with finite differences.
 
 ```
 dungeon trial 2 room_4

@@ -10,7 +10,7 @@ run the same loop in compiled C over a contiguous buffer, often with SIMD.
 Vectorizing is not a micro-optimization: it is regularly 100x.
 
 The trial file contains the slow reference loops. Your versions must produce the
-same answers and be at least 20x faster on the trial's inputs. (The trial times
+same answers and be at least 10x faster on the trial's inputs. (The trial times
 both on *your* machine, so the bar is relative, not absolute.)
 
 Tools you will want: fancy indexing ``out[np.arange(n), labels]``, ``np.cumsum``,

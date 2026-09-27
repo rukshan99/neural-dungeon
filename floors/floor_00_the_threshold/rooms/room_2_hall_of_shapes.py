@@ -5,7 +5,8 @@
 
 Two ideas do most of the work in this room:
 
-* ``reshape`` changes how the *same* memory is interpreted. It never moves data.
+* ``reshape`` changes how the *same* memory is interpreted. It never reorders
+  elements (and never copies while the array is contiguous).
   ``x.reshape(B, -1)`` lets numpy compute one dimension for you.
 * ``transpose`` (or ``np.moveaxis``) changes the *order of axes*. It also returns a
   view, but the elements you see are now in a different order. Reshaping when you
